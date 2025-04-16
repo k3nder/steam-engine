@@ -1,10 +1,10 @@
 use std::{collections::HashMap, ops::Range, sync::Arc};
 
-use crossbeam_channel::{Receiver, RecvError, Sender, TryRecvError};
+use crossbeam_channel::{Receiver, RecvError, SendError, Sender, TryRecvError};
 
 /// Manages communication between threads.
 pub struct CommManager {
-    recivers: HashMap<usize, Arc<Receiver<Message>>>,
+    receivers: HashMap<usize, Arc<Receiver<Message>>>,
     senders: HashMap<usize, Arc<Sender<Message>>>,
 }
 /// handles the communication, from a specific thread
@@ -23,10 +23,11 @@ impl Channel {
     }
 
     /// Sends a message to the specified thread.
-    pub fn send(&self, id: usize, message: Message) {
+    pub fn send(&self, id: usize, message: Message) -> Result<(), SendError<Message>> {
         if let Some(sender) = self.senders.get(&id) {
-            sender.send(message).expect("error sending message");
+            return sender.send(message);
         }
+        Ok(())
     }
     /// Receives a message from the channel(wait until you receive something).
     pub fn recv(&self) -> Result<Message, RecvError> {
@@ -39,10 +40,11 @@ impl Channel {
     }
 
     /// Sends a message to all registered threads.
-    pub fn broadcast(&self, message: Message) {
+    pub fn broadcast(&self, message: Message) -> Result<(), SendError<Message>> {
         for (_, sender) in self.senders.iter() {
-            sender.send(message.clone()).expect("error sending message");
+            return sender.send(message.clone());
         }
+        Ok(())
     }
 }
 
@@ -51,7 +53,7 @@ impl CommManager {
     pub fn new() -> Self {
         CommManager {
             senders: HashMap::new(),
-            recivers: HashMap::new(),
+            receivers: HashMap::new(),
         }
     }
 
@@ -67,35 +69,55 @@ impl CommManager {
     /// Registers a new thread with the communication manager.
     pub fn register(&mut self, id: usize) {
         let (sender, receiver) = crossbeam_channel::unbounded();
-        self.recivers.insert(id, Arc::new(receiver));
+        self.receivers.insert(id, Arc::new(receiver));
         self.senders.insert(id, Arc::new(sender));
     }
 
     /// Sends a message to the specified thread.
-    pub fn send_to(&self, id: usize, message: Message) {
+    pub fn send_to(&self, id: usize, message: Message) -> Result<(), SendError<Message>> {
         if let Some(sender) = self.senders.get(&id) {
-            sender.send(message).expect("error sending message");
+            return sender.send(message);
         }
+        Ok(())
     }
 
     /// Sends a message to all registered threads.
-    pub fn broadcast(&self, message: Message) {
+    pub fn broadcast(&self, message: Message) -> Result<(), SendError<Message>> {
         for (_, sender) in self.senders.iter() {
-            sender.send(message.clone()).expect("error sending message");
+            return sender.send(message.clone());
         }
+        Ok(())
     }
 
     /// Creates a new channel for communication with the specified thread.
     pub fn channel(&self, id: usize) -> Channel {
         Channel::new(
             self.senders.clone(),
-            self.recivers.get(&id).unwrap().clone(),
+            self.receivers.get(&id).unwrap().clone(),
         )
+    }
+
+    pub fn drop(&mut self, id: usize) {
+        self.senders.remove(&id);
+        self.receivers.remove(&id);
     }
 }
 /// Messages you can send to threads
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Message {
-    // TODO: Define your message variants here
     Test,
+    String(String),
+    Int(i32),
+    Float(f32),
+    Bool(bool),
+    Char(char),
+    Event(Event),
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Event {
+    Start,
+    Stop,
+    Pause,
+    Resume,
 }
