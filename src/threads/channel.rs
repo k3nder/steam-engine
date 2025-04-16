@@ -10,16 +10,16 @@ pub struct CommManager {
 /// handles the communication, from a specific thread
 pub struct Channel {
     senders: HashMap<usize, Arc<Sender<Message>>>,
-    reciver: Arc<Receiver<Message>>,
+    pub receiver: Arc<Receiver<Message>>,
 }
 
 impl Channel {
     /// Creates a new channel with the given senders and receiver.
     pub(crate) fn new(
         senders: HashMap<usize, Arc<Sender<Message>>>,
-        reciver: Arc<Receiver<Message>>,
+        receiver: Arc<Receiver<Message>>,
     ) -> Self {
-        Channel { senders, reciver }
+        Channel { senders, receiver }
     }
 
     /// Sends a message to the specified thread.
@@ -31,18 +31,21 @@ impl Channel {
     }
     /// Receives a message from the channel(wait until you receive something).
     pub fn recv(&self) -> Result<Message, RecvError> {
-        self.reciver.recv()
+        self.receiver.recv()
     }
 
     /// Receives a message from the channel.
     pub fn try_recv(&self) -> Result<Message, TryRecvError> {
-        self.reciver.try_recv()
+        self.receiver.try_recv()
     }
 
     /// Sends a message to all registered threads.
     pub fn broadcast(&self, message: Message) -> Result<(), SendError<Message>> {
         for (_, sender) in self.senders.iter() {
-            return sender.send(message.clone());
+            match sender.send(message.clone()) {
+                Ok(_) => (),
+                Err(err) => return Err(err),
+            }
         }
         Ok(())
     }
@@ -84,7 +87,10 @@ impl CommManager {
     /// Sends a message to all registered threads.
     pub fn broadcast(&self, message: Message) -> Result<(), SendError<Message>> {
         for (_, sender) in self.senders.iter() {
-            return sender.send(message.clone());
+            match sender.send(message.clone()) {
+                Ok(_) => (),
+                Err(err) => return Err(err),
+            }
         }
         Ok(())
     }
@@ -121,4 +127,5 @@ pub enum Event {
     Stop,
     Pause,
     Resume,
+    Exit,
 }
