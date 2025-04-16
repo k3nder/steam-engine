@@ -97,6 +97,7 @@ impl CommManager {
         )
     }
 
+    /// Drops the specified communication channel.
     pub fn drop(&mut self, id: usize) {
         self.senders.remove(&id);
         self.receivers.remove(&id);

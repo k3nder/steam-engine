@@ -17,15 +17,14 @@ mod tests {
     fn it_works() {
         let str = String::from("Hello, world!");
         let comm = channel::CommManager::from_threads(0..1);
-        let thread = thread!(0, comm, test);
+        let thread = thread!(0, comm, |comm: Channel| {
+            loop {
+                println!("{:?}", comm.recv())
+            }
+        });
 
         for _ in 0..100 {
             comm.send_to(0, Message::Test);
-        }
-    }
-    fn test(comm: Channel) {
-        loop {
-            println!("{:?}", comm.recv());
         }
     }
 }
