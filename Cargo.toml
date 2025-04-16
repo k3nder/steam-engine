@@ -7,3 +7,4 @@ authors = ["K3nder <k3nde@outlook.es>"]
 description = "A lightweight graphic engine"
 
 [dependencies]
+crossbeam-channel = "0.5.15"
