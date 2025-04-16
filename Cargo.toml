@@ -2,5 +2,8 @@
 name = "steamengine"
 version = "0.1.0"
 edition = "2024"
+license = "MIT"
+authors = ["K3nder <k3nde@outlook.es>"]
+description = "A lightweight graphic engine"
 
 [dependencies]
