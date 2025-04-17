@@ -1,5 +1,7 @@
 #[macro_use]
 pub mod threads;
+#[macro_use]
+pub mod windows;
 
 pub fn add(left: u64, right: u64) -> u64 {
     left + right
@@ -9,22 +11,36 @@ pub fn add(left: u64, right: u64) -> u64 {
 mod tests {
     use std::{sync::Arc, thread, time::Duration};
 
-    use crate::threads::channel::{self, Channel, CommManager, Message};
+    use winit::event::WindowEvent;
+
+    use crate::{
+        threads::channel::{self, Channel, CommManager, Message},
+        windows::AppHandle,
+    };
 
     use super::*;
 
     #[test]
-    fn it_works() {
-        let str = String::from("Hello, world!");
-        let comm = channel::CommManager::from_threads(0..1);
-        let thread = thread!(0, comm, |comm: Channel| {
-            loop {
-                println!("{:?}", comm.recv())
+    fn test() {
+        struct App;
+        impl AppHandle for App {
+            fn redraw(&mut self) {
+                todo!()
             }
-        });
 
-        for _ in 0..100 {
-            comm.send_to(0, Message::Test);
+            fn update(&mut self) {
+                todo!()
+            }
+
+            fn on(&mut self, event: &WindowEvent) -> bool {
+                false
+            }
         }
+        impl App {
+            fn new() -> Self {
+                Self
+            }
+        }
+        exec!(App::new());
     }
 }
