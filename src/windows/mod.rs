@@ -4,7 +4,7 @@ use winit::{
 };
 
 pub trait AppHandle {
-    fn redraw(&mut self);
+    fn redraw(&mut self) -> Result<(), wgpu::SurfaceError>;
     fn update(&mut self);
     fn on_close(&mut self) -> bool {
         false
@@ -136,8 +136,10 @@ macro_rules! exec {
                                 return;
                             }
                             app.update();
-                            app.redraw();
-                            // TODO: Manage redraw errors
+                            match app.redraw() {
+                                Ok(()) => (),
+                                Err(err) => log::error!("Failed to redraw: {}", err),
+                            }
                         }
                         winit::event::WindowEvent::MouseInput { state, button, .. } => {
                             let x = cursor_position.x as i32;

@@ -1,9 +1,12 @@
 use steamengine::{exec, windows::AppHandle};
+use wgpu::SurfaceError;
 use winit::event::WindowEvent;
 
 struct App;
 impl AppHandle for App {
-    fn redraw(&mut self) {}
+    fn redraw(&mut self) -> Result<(), SurfaceError> {
+        Ok(())
+    }
 
     fn update(&mut self) {}
 
