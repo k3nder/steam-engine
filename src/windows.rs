@@ -1,96 +1,108 @@
 use winit::{
     event::{MouseButton, WindowEvent},
+    event_loop::EventLoopWindowTarget,
     keyboard::Key,
 };
 
+use crate::render::Renderer;
+
 pub trait AppHandle {
-    fn redraw(&mut self) -> Result<(), wgpu::SurfaceError>;
-    fn update(&mut self);
-    fn on_close(&mut self) -> bool {
+    fn redraw(
+        &mut self,
+        renderer: &Renderer,
+        control: &EventLoopWindowTarget<()>,
+    ) -> Result<(), wgpu::SurfaceError>;
+    fn update(&mut self, control: &EventLoopWindowTarget<()>);
+    fn on_close(&mut self, control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_resize(&mut self, _size: &winit::dpi::PhysicalSize<u32>) -> bool {
+    fn on_resize(
+        &mut self,
+        _size: &winit::dpi::PhysicalSize<u32>,
+        _renderer: &mut Renderer,
+        control: &EventLoopWindowTarget<()>,
+    ) -> bool {
         false
     }
-    fn on_mouse_move(&mut self, _x: i32, _y: i32) -> bool {
+    fn on_mouse_move(&mut self, _x: i32, _y: i32, control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_mouse_down(&mut self, _button: MouseButton, _x: i32, _y: i32) -> bool {
+    fn on_mouse_down(&mut self, _button: MouseButton, _x: i32, _y: i32, control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_mouse_up(&mut self, _button: MouseButton, _x: i32, _y: i32) -> bool {
+    fn on_mouse_up(&mut self, _button: MouseButton, _x: i32, _y: i32, control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_mouse_click(&mut self, _button: MouseButton, _x: i32, _y: i32) -> bool {
+    fn on_mouse_click(&mut self, _button: MouseButton, _x: i32, _y: i32, control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_mouse_double_click(&mut self, _button: MouseButton, _x: i32, _y: i32) -> bool {
+    fn on_mouse_double_click(&mut self, _button: MouseButton, _x: i32, _y: i32, control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_minimize(&mut self) -> bool {
+    fn on_minimize(&mut self, control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_maximize(&mut self) -> bool {
+    fn on_maximize(&mut self, control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_restore(&mut self) -> bool {
+    fn on_restore(&mut self, control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_fullscreen(&mut self) -> bool {
+    fn on_fullscreen(&mut self, control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_exit_fullscreen(&mut self) -> bool {
+    fn on_exit_fullscreen(&mut self, control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_keyboard(&mut self, _key: Key) -> bool {
+    fn on_keyboard(&mut self, _key: Key, control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_key_pressed(&mut self, _key: Key) -> bool {
+    fn on_key_pressed(&mut self, _key: Key, control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_key_released(&mut self, _key: Key) -> bool {
+    fn on_key_released(&mut self, _key: Key, control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_focus_gained(&mut self) -> bool {
+    fn on_focus_gained(&mut self, control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_focus_lost(&mut self) -> bool {
+    fn on_focus_lost(&mut self, control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_mouse_wheel(&mut self, _delta: f32) -> bool {
+    fn on_mouse_wheel(&mut self, _delta: f32, control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_mouse_enter(&mut self) -> bool {
+    fn on_mouse_enter(&mut self, control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_mouse_leave(&mut self) -> bool {
+    fn on_mouse_leave(&mut self, control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_character(&mut self, _c: char) -> bool {
+    fn on_character(&mut self, _c: char, control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_dropped_file(&mut self, _path: std::path::PathBuf) -> bool {
+    fn on_dropped_file(&mut self, _path: std::path::PathBuf, control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_hover_filed(&mut self, _path: std::path::PathBuf) -> bool {
+    fn on_hover_filed(&mut self, _path: std::path::PathBuf, control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_hover_canceled(&mut self) -> bool {
+    fn on_hover_canceled(&mut self, control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_theme_changed(&mut self) -> bool {
+    fn on_theme_changed(&mut self, control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_scale_factor_changed(&mut self, _scale_factor: f64) -> bool {
+    fn on_scale_factor_changed(&mut self, _scale_factor: f64, control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_ime(&mut self) -> bool {
+    fn on_ime(&mut self, control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_touch(&mut self, _touch_id: u64, _x: i32, _y: i32) -> bool {
+    fn on_touch(&mut self, _touch_id: u64, _x: i32, _y: i32, control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on(&mut self, _event: &WindowEvent) -> bool {
+    fn on(&mut self, _event: &WindowEvent, control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
     fn window(&self) -> winit::window::WindowBuilder {
@@ -100,10 +112,11 @@ pub trait AppHandle {
 /// This macro generates a event_loop with the application handle given
 #[macro_export]
 macro_rules! exec {
-    ($app:expr) => {{
+    ($app:expr, $renderer_config:expr) => {async{
         let mut app = $app;
         let event_loop = winit::event_loop::EventLoop::new().unwrap();
         let window = app.window().build(&event_loop).unwrap();
+        let mut renderer = $renderer_config.build(&window).await;
         let mut surface_configured = false;
         let mut cursor_position = winit::dpi::PhysicalPosition::<f64>::new(0.0, 0.0);
 
@@ -113,30 +126,30 @@ macro_rules! exec {
                     ref event,
                     window_id: _,
                 } => {
-                    if app.on(event) {
+                    if app.on(event, control_flow) {
                         return;
                     }
 
                     match event {
                         winit::event::WindowEvent::CloseRequested => {
-                            if app.on_close() {
+                            if app.on_close(control_flow) {
                                 return;
                             }
                             control_flow.exit();
                         }
                         winit::event::WindowEvent::Resized(size) => {
                             surface_configured = true;
-                            if app.on_resize(size) {
+                            if app.on_resize(size, &mut renderer, control_flow) {
                                 return;
                             }
                         }
                         winit::event::WindowEvent::RedrawRequested => {
-                            window.request_redraw();
+                            renderer.window().request_redraw();
                             if !surface_configured {
                                 return;
                             }
-                            app.update();
-                            match app.redraw() {
+                            app.update(control_flow);
+                            match app.redraw(&renderer, control_flow) {
                                 Ok(()) => (),
                                 Err(err) => log::error!("Failed to redraw: {}", err),
                             }
@@ -146,22 +159,22 @@ macro_rules! exec {
                             let y = cursor_position.y as i32;
                             match state {
                                 winit::event::ElementState::Pressed => {
-                                    if app.on_mouse_down(*button, x, y) {
+                                    if app.on_mouse_down(*button, x, y, control_flow) {
                                         return;
                                     }
                                 },
                                 winit::event::ElementState::Released => {
-                                    if app.on_mouse_up(*button, x, y) {
+                                    if app.on_mouse_up(*button, x, y, control_flow) {
                                         return;
                                     }
                                     // Consider this a click when mouse is released
-                                    if app.on_mouse_click(*button, x, y) {
+                                    if app.on_mouse_click(*button, x, y, control_flow) {
                                         return;
                                     }
 
                                     // For double-click handling, you'd need to implement timing logic
                                     // This is a simplified approach for demonstration
-                                    if app.on_mouse_double_click(*button, x, y) {
+                                    if app.on_mouse_double_click(*button, x, y, control_flow) {
                                         return;
                                     }
                                 },
@@ -171,22 +184,22 @@ macro_rules! exec {
                             cursor_position = *position;
                             let x = position.x as i32;
                             let y = position.y as i32;
-                            if app.on_mouse_move(x, y) {
+                            if app.on_mouse_move(x, y, control_flow) {
                                 return;
                             }
                         }
                         winit::event::WindowEvent::KeyboardInput { event, .. } => {
-                            if app.on_keyboard(event.logical_key.clone()) {
+                            if app.on_keyboard(event.logical_key.clone(), control_flow) {
                                 return;
                             }
                             match event.state {
                                 winit::event::ElementState::Pressed => {
-                                    if app.on_key_pressed(event.logical_key.clone()) {
+                                    if app.on_key_pressed(event.logical_key.clone(), control_flow) {
                                         return;
                                     }
                                 },
                                 winit::event::ElementState::Released => {
-                                    if app.on_key_released(event.logical_key.clone()) {
+                                    if app.on_key_released(event.logical_key.clone(), control_flow) {
                                         return;
                                     }
                                 },
@@ -194,73 +207,73 @@ macro_rules! exec {
                         }
                         winit::event::WindowEvent::Focused(focused) => {
                             if *focused {
-                                if app.on_focus_gained() {
+                                if app.on_focus_gained(control_flow) {
                                     return;
                                 }
                             } else {
-                                if app.on_focus_lost() {
+                                if app.on_focus_lost(control_flow) {
                                     return;
                                 }
                             }
                         }
                         winit::event::WindowEvent::CursorEntered { .. } => {
-                            if app.on_mouse_enter() {
+                            if app.on_mouse_enter(control_flow) {
                                 return;
                             }
                         }
                         winit::event::WindowEvent::CursorLeft { .. } => {
-                            if app.on_mouse_leave() {
+                            if app.on_mouse_leave(control_flow) {
                                 return;
                             }
                         }
                         winit::event::WindowEvent::MouseWheel { delta, .. } => {
                             match delta {
                                 winit::event::MouseScrollDelta::LineDelta(_, y) => {
-                                    if app.on_mouse_wheel(*y) {
+                                    if app.on_mouse_wheel(*y, control_flow) {
                                         return;
                                     }
                                 },
                                 winit::event::MouseScrollDelta::PixelDelta(delta) => {
-                                    if app.on_mouse_wheel(delta.y as f32) {
+                                    if app.on_mouse_wheel(delta.y as f32, control_flow) {
                                         return;
                                     }
                                 },
                             }
                         }
                         winit::event::WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
-                            if app.on_scale_factor_changed(*scale_factor) {
+                            if app.on_scale_factor_changed(*scale_factor, control_flow) {
                                 return;
                             }
                         }
                         winit::event::WindowEvent::ThemeChanged(..) => {
-                            if app.on_theme_changed() {
+                            if app.on_theme_changed(control_flow) {
                                 return;
                             }
                         }
                         winit::event::WindowEvent::DroppedFile(path) => {
-                            if app.on_dropped_file(path.clone()) {
+                            if app.on_dropped_file(path.clone(), control_flow) {
                                 return;
                             }
                         }
                         winit::event::WindowEvent::HoveredFile(path) => {
-                            if app.on_hover_filed(path.clone()) {
+                            if app.on_hover_filed(path.clone(), control_flow) {
                                 return;
                             }
                         }
                         winit::event::WindowEvent::HoveredFileCancelled => {
-                            if app.on_hover_canceled() {
+                            if app.on_hover_canceled(control_flow) {
                                 return;
                             }
                         }
                         winit::event::WindowEvent::Touch(touch) => {
                             let x = touch.location.x as i32;
                             let y = touch.location.y as i32;
-                            if app.on_touch(touch.id, x, y) {
+                            if app.on_touch(touch.id, x, y, control_flow) {
                                 return;
                             }
                         }
                         winit::event::WindowEvent::Ime(..) => {
-                            if app.on_ime() {
+                            if app.on_ime(control_flow) {
                                 return;
                             }
                         }
@@ -273,7 +286,7 @@ macro_rules! exec {
                 }
                 winit::event::Event::AboutToWait => {
                     // This could be used for continuous rendering, if needed
-                    window.request_redraw();
+                    renderer.window().request_redraw();
                 }
                 _ => (),
             })
