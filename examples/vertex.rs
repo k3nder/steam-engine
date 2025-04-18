@@ -187,11 +187,6 @@ pub struct Vertex3DColor {
     pub position: [f32; 3],
     pub color: [f32; 3],
 }
-impl Vertex3DColor {
-    fn new(position: [f32; 3], color: [f32; 3]) -> Self {
-        Self { position, color }
-    }
-}
 impl Vertex for Vertex3DColor {
     fn desc() -> wgpu::VertexBufferLayout<'static> {
         VertexBufferLayout {
