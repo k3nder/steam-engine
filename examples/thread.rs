@@ -5,17 +5,17 @@ use steamengine::{
 
 fn main() {
     let manager = CommManager::from_threads(0..3);
-    let thread1 = thread!(0, manager, thread, 1);
-    let thread2 = thread!(1, manager, thread, 2);
-    let thread3 = thread!(2, manager, thread, 3);
+    let thread1 = thread!(1, manager, thread, 1);
+    let thread2 = thread!(2, manager, thread, 2);
+    let thread3 = thread!(3, manager, thread, 3);
 
     manager.broadcast(Message::Test).unwrap();
     manager
-        .send_to(0, Message::String("Hello number 1".to_owned()))
+        .send_to(1, Message::String("Hello number 1".to_owned()))
         .unwrap();
-    manager.send_to(1, Message::Bool(true)).unwrap();
+    manager.send_to(2, Message::Bool(true)).unwrap();
     manager
-        .send_to(2, Message::String("Hello number 3".to_owned()))
+        .send_to(3, Message::String("Hello number 3".to_owned()))
         .unwrap();
 
     manager.broadcast(Message::Event(Event::Exit)).unwrap();

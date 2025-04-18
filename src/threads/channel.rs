@@ -1,6 +1,7 @@
 use std::{collections::HashMap, ops::Range, sync::Arc};
 
 use crossbeam_channel::{Receiver, RecvError, SendError, Sender, TryRecvError};
+use log::error;
 
 /// Manages communication between threads.
 pub struct CommManager {
@@ -54,10 +55,12 @@ impl Channel {
 impl CommManager {
     /// Creates a new communication manager with no registered threads.
     pub fn new() -> Self {
-        CommManager {
+        let mut communicator = CommManager {
             senders: HashMap::new(),
             receivers: HashMap::new(),
-        }
+        };
+        communicator.register(0);
+        communicator
     }
 
     /// Creates a new communication manager with the specified threads.
@@ -71,6 +74,9 @@ impl CommManager {
 
     /// Registers a new thread with the communication manager.
     pub fn register(&mut self, id: usize) {
+        if self.receivers.contains_key(&id) {
+            error!("Thread already registered");
+        }
         let (sender, receiver) = crossbeam_channel::unbounded();
         self.receivers.insert(id, Arc::new(receiver));
         self.senders.insert(id, Arc::new(sender));
@@ -107,6 +113,18 @@ impl CommManager {
     pub fn drop(&mut self, id: usize) {
         self.senders.remove(&id);
         self.receivers.remove(&id);
+    }
+
+    /// Recives a message reading the first(0) reciver
+    /// *BLOCKING*
+    pub fn recv(&self) -> Result<Message, RecvError> {
+        self.receivers.get(&0).unwrap().recv()
+    }
+
+    /// Recives a message reading the first(0) reciver
+    /// *MON BLOCKING*
+    pub fn try_recv(&self) -> Result<Message, TryRecvError> {
+        self.receivers.get(&0).unwrap().try_recv()
     }
 }
 /// Messages you can send to threads
