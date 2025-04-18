@@ -1,6 +1,7 @@
 use std::{collections::HashMap, ops::Range, sync::Arc};
 
 use crossbeam_channel::{Receiver, RecvError, SendError, Sender, TryRecvError};
+use log::error;
 
 /// Manages communication between threads.
 pub struct CommManager {
@@ -73,6 +74,9 @@ impl CommManager {
 
     /// Registers a new thread with the communication manager.
     pub fn register(&mut self, id: usize) {
+        if self.receivers.contains_key(&id) {
+            error!("Thread already registered");
+        }
         let (sender, receiver) = crossbeam_channel::unbounded();
         self.receivers.insert(id, Arc::new(receiver));
         self.senders.insert(id, Arc::new(sender));
