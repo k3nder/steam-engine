@@ -1,6 +1,6 @@
-use std::{fmt::Debug, num::NonZero};
+use std::num::NonZero;
 
-use wgpu::{PipelineCache, PipelineCompilationOptions, RenderPass, VertexBufferLayout};
+use wgpu::{PipelineCache, PipelineCompilationOptions, VertexBufferLayout};
 
 use super::Renderer;
 
