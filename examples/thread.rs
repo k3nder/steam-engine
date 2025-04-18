@@ -4,7 +4,7 @@ use steamengine::{
 };
 
 fn main() {
-    let manager = CommManager::from_threads(0..3);
+    let mut manager = CommManager::new();
     let thread1 = thread!(1, manager, thread, 1);
     let thread2 = thread!(2, manager, thread, 2);
     let thread3 = thread!(3, manager, thread, 3);

@@ -1,9 +1,6 @@
 use std::iter;
 
-use rand::{
-    Rng, SeedableRng,
-    rngs::{StdRng, ThreadRng},
-};
+use rand::Rng;
 use steamengine::{
     color_render_pass, exec,
     render::{Renderer, RendererBuilder},
@@ -11,25 +8,21 @@ use steamengine::{
     threads::channel::{CommManager, Event, Message},
     windows::AppHandle,
 };
-use wgpu::QuerySet;
-use winit::{
-    event_loop::EventLoopWindowTarget, platform::x11::WindowBuilderExtX11, window::WindowBuilder,
-};
+use winit::{event_loop::EventLoopWindowTarget, window::WindowBuilder};
 
 struct App {
     threads: CommManager,
     color: (f64, f64, f64),
-    rng: ThreadRng,
 }
 impl AppHandle for App {
     fn redraw(
         &mut self,
         renderer: &Renderer,
-        control: &EventLoopWindowTarget<()>,
+        _control: &EventLoopWindowTarget<()>,
     ) -> Result<(), wgpu::SurfaceError> {
         let (mut encoder, view, output) = renderer.create_encoder().unwrap();
         {
-            let mut render_pass = encoder.begin_render_pass(&color_render_pass!(
+            let mut _render_pass = encoder.begin_render_pass(&color_render_pass!(
                 self.color.0,
                 self.color.1,
                 self.color.2,
@@ -43,10 +36,24 @@ impl AppHandle for App {
         Ok(())
     }
 
-    fn update(&mut self, control: &EventLoopWindowTarget<()>) {
-        self.color.0 = self.rng.r#gen();
-        self.color.1 = self.rng.r#gen();
-        self.color.2 = self.rng.r#gen();
+    fn update(&mut self, _control: &EventLoopWindowTarget<()>) {
+        self.threads.send_to(1, Message::Int(3)).unwrap();
+
+        self.color.0 = if let Ok(Message::Float(color)) = self.threads.try_recv() {
+            color as f64
+        } else {
+            self.color.0
+        };
+        self.color.1 = if let Ok(Message::Float(color)) = self.threads.try_recv() {
+            color as f64
+        } else {
+            self.color.1
+        };
+        self.color.2 = if let Ok(Message::Float(color)) = self.threads.try_recv() {
+            color as f64
+        } else {
+            self.color.2
+        };
     }
     fn on_resize(
         &mut self,
@@ -67,12 +74,24 @@ impl AppHandle for App {
         key: winit::keyboard::Key,
         control: &EventLoopWindowTarget<()>,
     ) -> bool {
-        let mut rng = rand::thread_rng();
+        self.threads.send_to(1, Message::Int(3)).unwrap();
         match key {
-            winit::keyboard::Key::Character(c) => {
-                self.color.0 = rng.r#gen();
-                self.color.1 = rng.r#gen();
-                self.color.2 = rng.r#gen();
+            winit::keyboard::Key::Character(_) => {
+                self.color.0 = if let Ok(Message::Float(color)) = self.threads.recv() {
+                    color as f64
+                } else {
+                    self.color.0
+                };
+                self.color.1 = if let Ok(Message::Float(color)) = self.threads.recv() {
+                    color as f64
+                } else {
+                    self.color.1
+                };
+                self.color.2 = if let Ok(Message::Float(color)) = self.threads.recv() {
+                    color as f64
+                } else {
+                    self.color.2
+                };
                 true
             }
             winit::keyboard::Key::Named(c) => {
@@ -93,17 +112,21 @@ impl AppHandle for App {
 }
 
 fn main() {
-    let comm_manager = CommManager::from_threads(0..1);
-    let audio = thread!(
-        0,
+    env_logger::init();
+    let mut comm_manager = CommManager::new();
+    let random = thread!(
+        1,
         comm_manager,
         |channel: steamengine::threads::channel::Channel| {
+            let mut rng = rand::thread_rng();
             loop {
                 let rec = channel.recv();
                 if let Ok(message) = rec {
                     match message {
-                        Message::String(str) => {
-                            println!("Playsound: {}", str);
+                        Message::Int(num) => {
+                            for _ in 0..num {
+                                channel.send(0, Message::Float(rng.r#gen())).unwrap();
+                            }
                         }
                         Message::Event(steamengine::threads::channel::Event::Exit) => {
                             break;
@@ -117,8 +140,7 @@ fn main() {
     let app = App {
         threads: comm_manager,
         color: (0.0, 0.0, 0.0),
-        rng: rand::thread_rng(),
     };
     pollster::block_on(exec!(app, RendererBuilder::new()));
-    audio.join().unwrap();
+    random.join().unwrap();
 }

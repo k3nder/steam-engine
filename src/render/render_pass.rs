@@ -1,7 +1,4 @@
-use wgpu::{
-    QuerySet, QuerySetDescriptor, RenderPassColorAttachment, RenderPassDepthStencilAttachment,
-    RenderPassDescriptor, RenderPassTimestampWrites, TextureFormat, TextureView,
-};
+use wgpu::{RenderPassColorAttachment, RenderPassDepthStencilAttachment, TextureView};
 #[macro_export]
 macro_rules! color_render_pass {
     ($r:expr, $g:expr, $b:expr, $a:expr, $view:expr) => {
@@ -78,7 +75,7 @@ impl<'a> RenderPassColorAttachmentBuilder<'a> {
             },
         }
     }
-    pub fn build(self, view: &'a wgpu::TextureView) -> RenderPassColorAttachment {
+    pub fn build(self, view: &'a wgpu::TextureView) -> RenderPassColorAttachment<'a> {
         RenderPassColorAttachment {
             view,
             resolve_target: self.resolve_target,

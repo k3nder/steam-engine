@@ -1,6 +1,6 @@
 use wgpu::{
-    BackendOptions, Backends, CommandEncoder, InstanceFlags, PresentMode, RenderPass,
-    SurfaceTexture, TextureView, Trace,
+    BackendOptions, Backends, CommandEncoder, InstanceFlags, PresentMode, SurfaceTexture,
+    TextureView, Trace,
 };
 use winit::dpi::PhysicalSize;
 

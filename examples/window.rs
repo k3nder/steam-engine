@@ -8,16 +8,24 @@ use winit::event::WindowEvent;
 
 struct App;
 impl AppHandle for App {
-    fn redraw(&mut self, renderer: &Renderer, control: &winit::event_loop::EventLoopWindowTarget<()>) -> Result<(), SurfaceError> {
+    fn redraw(
+        &mut self,
+        _renderer: &Renderer,
+        _control: &winit::event_loop::EventLoopWindowTarget<()>,
+    ) -> Result<(), SurfaceError> {
         Ok(())
     }
 
-    fn update(&mut self, control: &winit::event_loop::EventLoopWindowTarget<()>) {}
+    fn update(&mut self, _control: &winit::event_loop::EventLoopWindowTarget<()>) {}
 
-    fn on(&mut self, _: &WindowEvent, control: &winit::event_loop::EventLoopWindowTarget<()>) -> bool {
+    fn on(
+        &mut self,
+        _: &WindowEvent,
+        _control: &winit::event_loop::EventLoopWindowTarget<()>,
+    ) -> bool {
         false
     }
-    fn on_close(&mut self, control: &winit::event_loop::EventLoopWindowTarget<()>) -> bool {
+    fn on_close(&mut self, _control: &winit::event_loop::EventLoopWindowTarget<()>) -> bool {
         println!("Closing.....");
         true
     }

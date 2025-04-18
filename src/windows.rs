@@ -10,99 +10,141 @@ pub trait AppHandle {
     fn redraw(
         &mut self,
         renderer: &Renderer,
-        control: &EventLoopWindowTarget<()>,
+        _control: &EventLoopWindowTarget<()>,
     ) -> Result<(), wgpu::SurfaceError>;
-    fn update(&mut self, control: &EventLoopWindowTarget<()>);
-    fn on_close(&mut self, control: &EventLoopWindowTarget<()>) -> bool {
+    fn update(&mut self, _control: &EventLoopWindowTarget<()>);
+    fn on_close(&mut self, _control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
     fn on_resize(
         &mut self,
         _size: &winit::dpi::PhysicalSize<u32>,
         _renderer: &mut Renderer,
-        control: &EventLoopWindowTarget<()>,
+        _control: &EventLoopWindowTarget<()>,
     ) -> bool {
         false
     }
-    fn on_mouse_move(&mut self, _x: i32, _y: i32, control: &EventLoopWindowTarget<()>) -> bool {
+    fn on_mouse_move(&mut self, _x: i32, _y: i32, _control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_mouse_down(&mut self, _button: MouseButton, _x: i32, _y: i32, control: &EventLoopWindowTarget<()>) -> bool {
+    fn on_mouse_down(
+        &mut self,
+        _button: MouseButton,
+        _x: i32,
+        _y: i32,
+        _control: &EventLoopWindowTarget<()>,
+    ) -> bool {
         false
     }
-    fn on_mouse_up(&mut self, _button: MouseButton, _x: i32, _y: i32, control: &EventLoopWindowTarget<()>) -> bool {
+    fn on_mouse_up(
+        &mut self,
+        _button: MouseButton,
+        _x: i32,
+        _y: i32,
+        _control: &EventLoopWindowTarget<()>,
+    ) -> bool {
         false
     }
-    fn on_mouse_click(&mut self, _button: MouseButton, _x: i32, _y: i32, control: &EventLoopWindowTarget<()>) -> bool {
+    fn on_mouse_click(
+        &mut self,
+        _button: MouseButton,
+        _x: i32,
+        _y: i32,
+        _control: &EventLoopWindowTarget<()>,
+    ) -> bool {
         false
     }
-    fn on_mouse_double_click(&mut self, _button: MouseButton, _x: i32, _y: i32, control: &EventLoopWindowTarget<()>) -> bool {
+    fn on_mouse_double_click(
+        &mut self,
+        _button: MouseButton,
+        _x: i32,
+        _y: i32,
+        _control: &EventLoopWindowTarget<()>,
+    ) -> bool {
         false
     }
-    fn on_minimize(&mut self, control: &EventLoopWindowTarget<()>) -> bool {
+    fn on_minimize(&mut self, _control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_maximize(&mut self, control: &EventLoopWindowTarget<()>) -> bool {
+    fn on_maximize(&mut self, _control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_restore(&mut self, control: &EventLoopWindowTarget<()>) -> bool {
+    fn on_restore(&mut self, _control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_fullscreen(&mut self, control: &EventLoopWindowTarget<()>) -> bool {
+    fn on_fullscreen(&mut self, _control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_exit_fullscreen(&mut self, control: &EventLoopWindowTarget<()>) -> bool {
+    fn on_exit_fullscreen(&mut self, _control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_keyboard(&mut self, _key: Key, control: &EventLoopWindowTarget<()>) -> bool {
+    fn on_keyboard(&mut self, _key: Key, _control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_key_pressed(&mut self, _key: Key, control: &EventLoopWindowTarget<()>) -> bool {
+    fn on_key_pressed(&mut self, _key: Key, _control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_key_released(&mut self, _key: Key, control: &EventLoopWindowTarget<()>) -> bool {
+    fn on_key_released(&mut self, _key: Key, _control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_focus_gained(&mut self, control: &EventLoopWindowTarget<()>) -> bool {
+    fn on_focus_gained(&mut self, _control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_focus_lost(&mut self, control: &EventLoopWindowTarget<()>) -> bool {
+    fn on_focus_lost(&mut self, _control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_mouse_wheel(&mut self, _delta: f32, control: &EventLoopWindowTarget<()>) -> bool {
+    fn on_mouse_wheel(&mut self, _delta: f32, _control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_mouse_enter(&mut self, control: &EventLoopWindowTarget<()>) -> bool {
+    fn on_mouse_enter(&mut self, _control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_mouse_leave(&mut self, control: &EventLoopWindowTarget<()>) -> bool {
+    fn on_mouse_leave(&mut self, _control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_character(&mut self, _c: char, control: &EventLoopWindowTarget<()>) -> bool {
+    fn on_character(&mut self, _c: char, _control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_dropped_file(&mut self, _path: std::path::PathBuf, control: &EventLoopWindowTarget<()>) -> bool {
+    fn on_dropped_file(
+        &mut self,
+        _path: std::path::PathBuf,
+        _control: &EventLoopWindowTarget<()>,
+    ) -> bool {
         false
     }
-    fn on_hover_filed(&mut self, _path: std::path::PathBuf, control: &EventLoopWindowTarget<()>) -> bool {
+    fn on_hover_filed(
+        &mut self,
+        _path: std::path::PathBuf,
+        _control: &EventLoopWindowTarget<()>,
+    ) -> bool {
         false
     }
-    fn on_hover_canceled(&mut self, control: &EventLoopWindowTarget<()>) -> bool {
+    fn on_hover_canceled(&mut self, _control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_theme_changed(&mut self, control: &EventLoopWindowTarget<()>) -> bool {
+    fn on_theme_changed(&mut self, _control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_scale_factor_changed(&mut self, _scale_factor: f64, control: &EventLoopWindowTarget<()>) -> bool {
+    fn on_scale_factor_changed(
+        &mut self,
+        _scale_factor: f64,
+        _control: &EventLoopWindowTarget<()>,
+    ) -> bool {
         false
     }
-    fn on_ime(&mut self, control: &EventLoopWindowTarget<()>) -> bool {
+    fn on_ime(&mut self, _control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_touch(&mut self, _touch_id: u64, _x: i32, _y: i32, control: &EventLoopWindowTarget<()>) -> bool {
+    fn on_touch(
+        &mut self,
+        _touch_id: u64,
+        _x: i32,
+        _y: i32,
+        _control: &EventLoopWindowTarget<()>,
+    ) -> bool {
         false
     }
-    fn on(&mut self, _event: &WindowEvent, control: &EventLoopWindowTarget<()>) -> bool {
+    fn on(&mut self, _event: &WindowEvent, _control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
     fn window(&self) -> winit::window::WindowBuilder {
