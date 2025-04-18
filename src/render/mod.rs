@@ -1,6 +1,8 @@
+use bytemuck::NoUninit;
 use wgpu::{
-    BackendOptions, Backends, CommandEncoder, InstanceFlags, PresentMode, SurfaceTexture,
-    TextureView, Trace,
+    BackendOptions, Backends, Buffer, BufferUsages, CommandEncoder, InstanceFlags, PresentMode,
+    SurfaceTexture, TextureView, Trace,
+    util::{BufferInitDescriptor, DeviceExt},
 };
 use winit::dpi::PhysicalSize;
 
@@ -233,5 +235,15 @@ impl<'a> Renderer<'a> {
             self.config.height = new_size.height;
             self.surface.configure(&self.device, &self.config);
         }
+    }
+    pub fn init_buffer<A>(&self, label: &str, usage: BufferUsages, content: &[A]) -> Buffer
+    where
+        A: NoUninit,
+    {
+        self.device.create_buffer_init(&BufferInitDescriptor {
+            label: Some(label),
+            contents: bytemuck::cast_slice(content),
+            usage,
+        })
     }
 }
