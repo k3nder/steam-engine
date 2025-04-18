@@ -54,10 +54,12 @@ impl Channel {
 impl CommManager {
     /// Creates a new communication manager with no registered threads.
     pub fn new() -> Self {
-        CommManager {
+        let mut communicator = CommManager {
             senders: HashMap::new(),
             receivers: HashMap::new(),
-        }
+        };
+        communicator.register(0);
+        communicator
     }
 
     /// Creates a new communication manager with the specified threads.
@@ -107,6 +109,18 @@ impl CommManager {
     pub fn drop(&mut self, id: usize) {
         self.senders.remove(&id);
         self.receivers.remove(&id);
+    }
+
+    /// Recives a message reading the first(0) reciver
+    /// *BLOCKING*
+    pub fn recv(&self) -> Result<Message, RecvError> {
+        self.receivers.get(&0).unwrap().recv()
+    }
+
+    /// Recives a message reading the first(0) reciver
+    /// *MON BLOCKING*
+    pub fn try_recv(&self) -> Result<Message, TryRecvError> {
+        self.receivers.get(&0).unwrap().try_recv()
     }
 }
 /// Messages you can send to threads
