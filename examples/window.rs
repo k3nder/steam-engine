@@ -1,19 +1,23 @@
-use steamengine::{exec, windows::AppHandle};
+use steamengine::{
+    exec,
+    render::{Renderer, RendererBuilder},
+    windows::AppHandle,
+};
 use wgpu::SurfaceError;
 use winit::event::WindowEvent;
 
 struct App;
 impl AppHandle for App {
-    fn redraw(&mut self) -> Result<(), SurfaceError> {
+    fn redraw(&mut self, renderer: &Renderer, control: &winit::event_loop::EventLoopWindowTarget<()>) -> Result<(), SurfaceError> {
         Ok(())
     }
 
-    fn update(&mut self) {}
+    fn update(&mut self, control: &winit::event_loop::EventLoopWindowTarget<()>) {}
 
-    fn on(&mut self, _: &WindowEvent) -> bool {
+    fn on(&mut self, _: &WindowEvent, control: &winit::event_loop::EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_close(&mut self) -> bool {
+    fn on_close(&mut self, control: &winit::event_loop::EventLoopWindowTarget<()>) -> bool {
         println!("Closing.....");
         true
     }
@@ -25,5 +29,5 @@ impl App {
 }
 
 fn main() {
-    exec!(App::new());
+    pollster::block_on(exec!(App::new(), RendererBuilder::new()));
 }
