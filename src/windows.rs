@@ -7,6 +7,7 @@ use winit::{
 use crate::render::Renderer;
 
 pub trait AppHandle {
+    fn setup(&mut self, renderer: &Renderer);
     fn redraw(
         &mut self,
         renderer: &Renderer,
@@ -159,6 +160,7 @@ macro_rules! exec {
         let event_loop = winit::event_loop::EventLoop::new().unwrap();
         let window = app.window().build(&event_loop).unwrap();
         let mut renderer = $renderer_config.build(&window).await;
+        app.setup(&renderer);
         let mut surface_configured = false;
         let mut cursor_position = winit::dpi::PhysicalPosition::<f64>::new(0.0, 0.0);
 

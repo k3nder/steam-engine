@@ -29,6 +29,8 @@ impl AppHandle for App {
         println!("Closing.....");
         true
     }
+
+    fn setup(&mut self, _renderer: &Renderer) {}
 }
 impl App {
     fn new() -> Self {

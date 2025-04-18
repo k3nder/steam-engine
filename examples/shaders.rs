@@ -3,7 +3,10 @@ use std::iter;
 use rand::Rng;
 use steamengine::{
     color_render_pass, exec,
-    render::{Renderer, RendererBuilder},
+    render::{
+        Renderer, RendererBuilder,
+        render_pipeline::{RenderPipeline, basic::BasicRenderPipeline},
+    },
     thread,
     threads::channel::{CommManager, Event, Message},
     windows::AppHandle,
@@ -13,6 +16,7 @@ use winit::{event_loop::EventLoopWindowTarget, window::WindowBuilder};
 struct App {
     threads: CommManager,
     color: (f64, f64, f64),
+    render_pipeline: Option<wgpu::RenderPipeline>,
 }
 impl AppHandle for App {
     fn redraw(
@@ -22,12 +26,14 @@ impl AppHandle for App {
     ) -> Result<(), wgpu::SurfaceError> {
         let (mut encoder, view, output) = renderer.create_encoder().unwrap();
         {
-            let mut _render_pass = encoder.begin_render_pass(&color_render_pass!(
-                self.color.0,
-                self.color.1,
-                self.color.2,
-                view
-            ));
+            let mut _render_pass = encoder.begin_render_pass(&color_render_pass!(1.0, view));
+
+            _render_pass.set_pipeline(
+                self.render_pipeline
+                    .as_ref()
+                    .expect("Render Pipeline Not initialized"),
+            );
+            _render_pass.draw(0..3, 0..1); // 3.
         }
 
         renderer.queue().submit(iter::once(encoder.finish()));
@@ -110,7 +116,9 @@ impl AppHandle for App {
         WindowBuilder::new().with_title("Windows")
     }
 
-    fn setup(&mut self, _renderer: &Renderer) {}
+    fn setup(&mut self, renderer: &Renderer) {
+        self.render_pipeline = Some(BasicRenderPipeline::new().to_wgpu(renderer));
+    }
 }
 
 fn main() {
@@ -142,6 +150,7 @@ fn main() {
     let app = App {
         threads: comm_manager,
         color: (0.0, 0.0, 0.0),
+        render_pipeline: None,
     };
     pollster::block_on(exec!(app, RendererBuilder::new()));
     random.join().unwrap();

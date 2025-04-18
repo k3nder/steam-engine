@@ -5,6 +5,7 @@ use wgpu::{
 use winit::dpi::PhysicalSize;
 
 pub mod render_pass;
+pub mod render_pipeline;
 
 pub struct RendererBuilder {
     backends: Backends,
