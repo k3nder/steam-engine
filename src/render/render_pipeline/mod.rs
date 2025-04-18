@@ -9,8 +9,8 @@ pub mod basic;
 pub trait RenderPipeline {
     fn label(&self) -> &str;
     fn source(&self) -> &str;
-    fn buffers(&self) -> &[VertexBufferLayout] {
-        &[]
+    fn buffers(&self) -> Vec<VertexBufferLayout> {
+        vec![]
     }
     fn vertex_compilation(&self) -> PipelineCompilationOptions {
         PipelineCompilationOptions::default()
@@ -82,7 +82,7 @@ pub trait RenderPipeline {
                     vertex: wgpu::VertexState {
                         module: &shader,
                         entry_point: Some("vs_main"),
-                        buffers: self.buffers(),
+                        buffers: self.buffers().as_slice(),
                         compilation_options: self.vertex_compilation(),
                     },
                     fragment: Some(wgpu::FragmentState {
