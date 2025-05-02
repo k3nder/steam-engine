@@ -1,4 +1,3 @@
-use thiserror::Error;
 use winit::{
     event::{MouseButton, WindowEvent},
     event_loop::EventLoopWindowTarget,
@@ -7,50 +6,56 @@ use winit::{
 
 use crate::render::Renderer;
 
-#[derive(Error, Debug)]
-pub enum AppError {
-    #[error("Unknown error")]
-    Unknown,
-    #[error("Setup error")]
-    Setup(#[from] SetupError),
-    #[error("Render error")]
-    Render(#[from] RenderError),
-    #[error("Calculation error")]
-    Calculation(#[from] CalculationError),
-    #[error("Event loop error: {0}")]
-    EventLoop(#[from] winit::error::EventLoopError),
-    #[error("Window creation error")]
-    WindowCreation(#[from] winit::error::OsError),
-}
+pub mod errors {
+    use thiserror::Error;
+    #[derive(Error, Debug)]
+    pub enum AppError {
+        #[error("Unknown error")]
+        Unknown,
+        #[error("Setup error")]
+        Setup(#[from] SetupError),
+        #[error("Render error")]
+        Render(#[from] RenderError),
+        #[error("Calculation error")]
+        Calculation(#[from] CalculationError),
+        #[error("Event loop error: {0}")]
+        EventLoop(#[from] winit::error::EventLoopError),
+        #[error("Window creation error")]
+        WindowCreation(#[from] winit::error::OsError),
+    }
 
-#[derive(Error, Debug)]
-pub enum SetupError {
-    #[error("Surface creation error")]
-    SurfaceCreation(#[from] wgpu::SurfaceError),
-    #[error("Device creation error")]
-    DeviceCreation(#[from] wgpu::Error),
-}
+    #[derive(Error, Debug)]
+    pub enum SetupError {
+        #[error("Surface creation error")]
+        SurfaceCreation(#[from] wgpu::SurfaceError),
+        #[error("Device creation error")]
+        DeviceCreation(#[from] wgpu::Error),
+    }
 
-#[derive(Error, Debug)]
-pub enum RenderError {
-    #[error("Render error")]
-    Render(),
-}
+    #[derive(Error, Debug)]
+    pub enum RenderError {
+        #[error("Surface error: {0}")]
+        Unknown(#[from] wgpu::SurfaceError),
+    }
 
-#[derive(Error, Debug)]
-pub enum CalculationError {
-    #[error("Calculation error")]
-    Calculation(),
+    #[derive(Error, Debug)]
+    pub enum CalculationError {
+        #[error("Calculation error")]
+        Calculation(),
+    }
 }
 
 pub trait AppHandle {
-    fn setup(&mut self, renderer: &Renderer) -> Result<(), SetupError>;
+    fn setup(&mut self, renderer: &Renderer) -> Result<(), errors::SetupError>;
     fn redraw(
         &mut self,
         renderer: &Renderer,
         _control: &EventLoopWindowTarget<()>,
-    ) -> Result<(), RenderError>;
-    fn update(&mut self, _control: &EventLoopWindowTarget<()>) -> Result<(), CalculationError>;
+    ) -> Result<(), errors::RenderError>;
+    fn update(
+        &mut self,
+        _control: &EventLoopWindowTarget<()>,
+    ) -> Result<(), errors::CalculationError>;
     fn on_close(&mut self, _control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
@@ -374,6 +379,6 @@ macro_rules! exec {
                 }
                 _ => (),
             })?;
-    Ok(()) as Result<(), steamengine::windows::AppError>
+    Ok(()) as Result<(), steamengine::windows::errors::AppError>
     }};
 }
