@@ -11,7 +11,10 @@ use steamengine::{
     },
     thread,
     threads::channel::{CommManager, Event, Message},
-    windows::AppHandle,
+    windows::{
+        AppHandle,
+        errors::{CalculationError, RenderError, SetupError},
+    },
 };
 use wgpu::{
     BindGroupLayout, BufferUsages, TextureDimension, TextureViewDescriptor, VertexBufferLayout,
@@ -55,8 +58,8 @@ impl AppHandle for App {
         &mut self,
         renderer: &Renderer,
         _control: &EventLoopWindowTarget<()>,
-    ) -> Result<(), wgpu::SurfaceError> {
-        let (mut encoder, view, output) = renderer.create_encoder().unwrap();
+    ) -> Result<(), RenderError> {
+        let (mut encoder, view, output) = renderer.create_encoder()?;
         {
             let mut _render_pass = encoder.begin_render_pass(&color_render_pass!(1.0, view));
 
@@ -86,24 +89,8 @@ impl AppHandle for App {
         Ok(())
     }
 
-    fn update(&mut self, _control: &EventLoopWindowTarget<()>) {
-        self.threads.send_to(1, Message::Int(3)).unwrap();
-
-        self.color.0 = if let Ok(Message::Float(color)) = self.threads.try_recv() {
-            color as f64
-        } else {
-            self.color.0
-        };
-        self.color.1 = if let Ok(Message::Float(color)) = self.threads.try_recv() {
-            color as f64
-        } else {
-            self.color.1
-        };
-        self.color.2 = if let Ok(Message::Float(color)) = self.threads.try_recv() {
-            color as f64
-        } else {
-            self.color.2
-        };
+    fn update(&mut self, _control: &EventLoopWindowTarget<()>) -> Result<(), CalculationError> {
+        Ok(())
     }
     fn on_resize(
         &mut self,
@@ -160,7 +147,7 @@ impl AppHandle for App {
         WindowBuilder::new().with_title("Windows")
     }
 
-    fn setup(&mut self, renderer: &Renderer) {
+    fn setup(&mut self, renderer: &Renderer) -> Result<(), SetupError> {
         self.vertex_buffer =
             Some(renderer.init_buffer("vertex buffer", BufferUsages::VERTEX, VERTICES));
         self.index_buffer =
@@ -215,6 +202,8 @@ impl AppHandle for App {
                 .unwrap()])
             .to_wgpu(renderer),
         );
+
+        Ok(())
     }
 }
 

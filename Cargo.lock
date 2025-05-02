@@ -1938,6 +1938,7 @@ dependencies = [
  "log",
  "pollster",
  "rand",
+ "thiserror 2.0.12",
  "wgpu",
  "winit",
 ]

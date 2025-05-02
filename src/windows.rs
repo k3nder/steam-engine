@@ -6,14 +6,61 @@ use winit::{
 
 use crate::render::Renderer;
 
+pub mod errors {
+    use thiserror::Error;
+    use wgpu::CreateSurfaceError;
+
+    use crate::render::errors::RendererSetupError;
+    #[derive(Error, Debug)]
+    pub enum AppError {
+        #[error("Unknown error")]
+        Unknown,
+        #[error("Setup error")]
+        Setup(#[from] SetupError),
+        #[error("Render error")]
+        Render(#[from] RenderError),
+        #[error("Calculation error")]
+        Calculation(#[from] CalculationError),
+        #[error("Event loop error: {0}")]
+        EventLoop(#[from] winit::error::EventLoopError),
+        #[error("Window creation error")]
+        WindowCreation(#[from] winit::error::OsError),
+        #[error("Error setting up renderer")]
+        RendererSetupError(#[from] RendererSetupError),
+    }
+
+    #[derive(Error, Debug)]
+    pub enum SetupError {
+        #[error("Surface creation error")]
+        SurfaceCreation(#[from] wgpu::SurfaceError),
+        #[error("Device creation error")]
+        DeviceCreation(#[from] wgpu::Error),
+    }
+
+    #[derive(Error, Debug)]
+    pub enum RenderError {
+        #[error("Surface error: {0}")]
+        Unknown(#[from] wgpu::SurfaceError),
+    }
+
+    #[derive(Error, Debug)]
+    pub enum CalculationError {
+        #[error("Calculation error")]
+        Calculation(),
+    }
+}
+
 pub trait AppHandle {
-    fn setup(&mut self, renderer: &Renderer);
+    fn setup(&mut self, renderer: &Renderer) -> Result<(), errors::SetupError>;
     fn redraw(
         &mut self,
         renderer: &Renderer,
         _control: &EventLoopWindowTarget<()>,
-    ) -> Result<(), wgpu::SurfaceError>;
-    fn update(&mut self, _control: &EventLoopWindowTarget<()>);
+    ) -> Result<(), errors::RenderError>;
+    fn update(
+        &mut self,
+        _control: &EventLoopWindowTarget<()>,
+    ) -> Result<(), errors::CalculationError>;
     fn on_close(&mut self, _control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
@@ -155,12 +202,12 @@ pub trait AppHandle {
 /// This macro generates a event_loop with the application handle given
 #[macro_export]
 macro_rules! exec {
-    ($app:expr, $renderer_config:expr) => {async{
+    ($app:expr, $renderer_config:expr) => {async {
         let mut app = $app;
-        let event_loop = winit::event_loop::EventLoop::new().unwrap();
-        let window = app.window().build(&event_loop).unwrap();
-        let mut renderer = $renderer_config.build(&window).await;
-        app.setup(&renderer);
+        let event_loop = winit::event_loop::EventLoop::new()?;
+        let window = app.window().build(&event_loop)?;
+        let mut renderer = $renderer_config.build(&window).await?;
+        app.setup(&renderer)?;
         let mut surface_configured = false;
         let mut cursor_position = winit::dpi::PhysicalPosition::<f64>::new(0.0, 0.0);
 
@@ -192,7 +239,10 @@ macro_rules! exec {
                             if !surface_configured {
                                 return;
                             }
-                            app.update(control_flow);
+                            match app.update(control_flow) {
+                                Ok(()) => (),
+                                Err(err) => log::error!("Failed to update: {}", err),
+                            }
                             match app.redraw(&renderer, control_flow) {
                                 Ok(()) => (),
                                 Err(err) => log::error!("Failed to redraw: {}", err),
@@ -333,7 +383,7 @@ macro_rules! exec {
                     renderer.window().request_redraw();
                 }
                 _ => (),
-            })
-            .unwrap();
+            })?;
+    Ok(()) as Result<(), steamengine::windows::errors::AppError>
     }};
 }
