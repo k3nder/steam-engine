@@ -4,6 +4,14 @@ use crossbeam_channel::{Receiver, RecvError, SendError, Sender, TryRecvError};
 use log::error;
 
 /// Manages communication between threads.
+/// Each thread has a ID, the main thread of the program is the ID 0
+/// ## Example
+/// ```rust
+/// let comm = CommManager::new();
+///
+/// // Thread 1
+/// comm.send(0, Message::String(String::from("Hello")))
+/// ```
 pub struct CommManager {
     receivers: HashMap<usize, Arc<Receiver<Message>>>,
     senders: HashMap<usize, Arc<Sender<Message>>>,

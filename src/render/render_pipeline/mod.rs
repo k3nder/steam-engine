@@ -6,8 +6,10 @@ use super::Renderer;
 
 pub mod basic;
 
+/// this trait is for create of render pipelines
 pub trait RenderPipeline {
     fn label(&self) -> &str;
+    /// returns the shader code
     fn source(&self) -> &str;
     fn buffers(&self) -> Vec<VertexBufferLayout> {
         vec![]
