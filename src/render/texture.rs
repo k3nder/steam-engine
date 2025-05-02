@@ -2,10 +2,11 @@ use image::{ImageBuffer, Rgba};
 use wgpu::{
     BindingType, Origin3d, Sampler, ShaderStages, TexelCopyBufferLayout, TexelCopyTextureInfo,
     TextureAspect, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages, TextureView,
-    TextureViewDescriptor, hal::TextureBinding,
+    TextureViewDescriptor,
 };
 
 use super::{Renderer, bind_group::BindGroupEntryBuilder};
+
 pub enum TextureDimensions {
     D3(u32, u32, u32),
     D2(u32, u32),
@@ -171,6 +172,7 @@ impl TextureBuilder {
             .usage
             .unwrap_or(TextureUsages::TEXTURE_BINDING | TextureUsages::COPY_DST);
         let label = Some(label);
+        let data = self.data.expect("Image don't uploaded to texture");
 
         let texture = renderer.device().create_texture(&TextureDescriptor {
             size,
@@ -190,7 +192,7 @@ impl TextureBuilder {
                 origin: self.origin.unwrap_or(Origin3d::ZERO),
                 aspect: self.aspect.unwrap_or(TextureAspect::All),
             },
-            &self.data.expect(""),
+            &data,
             TexelCopyBufferLayout {
                 offset: self.offset.unwrap_or(0),
                 bytes_per_row: self.bytes_per_row.or(Some(4 * size.width)),

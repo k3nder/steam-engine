@@ -1,5 +1,6 @@
 use bind_group::BindGroupEntryBuilder;
 use bytemuck::NoUninit;
+use errors::{RenderError, RendererSetupError};
 use texture::{Texture, TextureBuilder};
 use wgpu::{
     BackendOptions, Backends, BindGroupEntry, BindGroupLayoutDescriptor, BindGroupLayoutEntry,
@@ -10,6 +11,7 @@ use wgpu::{
 use winit::dpi::PhysicalSize;
 
 pub mod bind_group;
+pub mod errors;
 pub mod render_pass;
 pub mod render_pipeline;
 pub mod texture;
@@ -127,7 +129,10 @@ impl RendererBuilder {
         self.trace = trace;
         self
     }
-    pub async fn build<'a>(self, window: &'a winit::window::Window) -> Renderer<'a> {
+    pub async fn build<'a>(
+        self,
+        window: &'a winit::window::Window,
+    ) -> Result<Renderer<'a>, RendererSetupError> {
         let size = window.inner_size();
 
         // The instance is a handle to our GPU
@@ -138,7 +143,7 @@ impl RendererBuilder {
             backend_options: self.backend_options,
         });
 
-        let surface = instance.create_surface(window).unwrap();
+        let surface = instance.create_surface(window)?;
 
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
@@ -146,8 +151,7 @@ impl RendererBuilder {
                 compatible_surface: Some(&surface),
                 force_fallback_adapter: self.force_fallback_adapter,
             })
-            .await
-            .unwrap();
+            .await?;
 
         let (device, queue) = adapter
             .request_device(&wgpu::DeviceDescriptor {
@@ -159,8 +163,7 @@ impl RendererBuilder {
                 memory_hints: self.memory_hints,
                 trace: self.trace,
             })
-            .await
-            .unwrap();
+            .await?;
 
         let surface_caps = surface.get_capabilities(&adapter);
         // Shader code in this tutorial assumes an Srgb surface texture. Using a different
@@ -178,14 +181,14 @@ impl RendererBuilder {
             desired_maximum_frame_latency: self.desired_maximum_frame_latency,
         };
 
-        Renderer {
+        Ok(Renderer {
             surface,
             device,
             queue,
             config,
             size,
             window,
-        }
+        })
     }
 }
 
