@@ -8,6 +8,9 @@ use crate::render::Renderer;
 
 pub mod errors {
     use thiserror::Error;
+    use wgpu::CreateSurfaceError;
+
+    use crate::render::errors::RendererSetupError;
     #[derive(Error, Debug)]
     pub enum AppError {
         #[error("Unknown error")]
@@ -22,6 +25,8 @@ pub mod errors {
         EventLoop(#[from] winit::error::EventLoopError),
         #[error("Window creation error")]
         WindowCreation(#[from] winit::error::OsError),
+        #[error("Error setting up renderer")]
+        RendererSetupError(#[from] RendererSetupError),
     }
 
     #[derive(Error, Debug)]
@@ -201,7 +206,7 @@ macro_rules! exec {
         let mut app = $app;
         let event_loop = winit::event_loop::EventLoop::new()?;
         let window = app.window().build(&event_loop)?;
-        let mut renderer = $renderer_config.build(&window).await;
+        let mut renderer = $renderer_config.build(&window).await?;
         app.setup(&renderer)?;
         let mut surface_configured = false;
         let mut cursor_position = winit::dpi::PhysicalPosition::<f64>::new(0.0, 0.0);

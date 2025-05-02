@@ -1,9 +1,12 @@
 use steamengine::{
     exec,
     render::{Renderer, RendererBuilder},
-    windows::AppHandle,
+    windows::{
+        AppHandle,
+        errors::{CalculationError, RenderError, SetupError},
+    },
 };
-use wgpu::SurfaceError;
+use wgpu::{SurfaceError, wgc::command::DrawError};
 use winit::event::WindowEvent;
 
 struct App;
@@ -12,11 +15,16 @@ impl AppHandle for App {
         &mut self,
         _renderer: &Renderer,
         _control: &winit::event_loop::EventLoopWindowTarget<()>,
-    ) -> Result<(), SurfaceError> {
+    ) -> Result<(), RenderError> {
         Ok(())
     }
 
-    fn update(&mut self, _control: &winit::event_loop::EventLoopWindowTarget<()>) {}
+    fn update(
+        &mut self,
+        _control: &winit::event_loop::EventLoopWindowTarget<()>,
+    ) -> Result<(), CalculationError> {
+        Ok(())
+    }
 
     fn on(
         &mut self,
@@ -30,7 +38,9 @@ impl AppHandle for App {
         true
     }
 
-    fn setup(&mut self, _renderer: &Renderer) {}
+    fn setup(&mut self, _renderer: &Renderer) -> Result<(), SetupError> {
+        Ok(())
+    }
 }
 impl App {
     fn new() -> Self {
@@ -39,5 +49,5 @@ impl App {
 }
 
 fn main() {
-    pollster::block_on(exec!(App::new(), RendererBuilder::new()));
+    pollster::block_on(exec!(App::new(), RendererBuilder::new())).unwrap();
 }

@@ -6,7 +6,10 @@ use steamengine::{
     render::{Renderer, RendererBuilder},
     thread,
     threads::channel::{CommManager, Event, Message},
-    windows::AppHandle,
+    windows::{
+        AppHandle,
+        errors::{CalculationError, RenderError, SetupError},
+    },
 };
 use winit::{event_loop::EventLoopWindowTarget, window::WindowBuilder};
 
@@ -19,8 +22,8 @@ impl AppHandle for App {
         &mut self,
         renderer: &Renderer,
         _control: &EventLoopWindowTarget<()>,
-    ) -> Result<(), wgpu::SurfaceError> {
-        let (mut encoder, view, output) = renderer.create_encoder().unwrap();
+    ) -> Result<(), RenderError> {
+        let (mut encoder, view, output) = renderer.create_encoder()?;
         {
             let mut _render_pass = encoder.begin_render_pass(&color_render_pass!(
                 self.color.0,
@@ -36,7 +39,7 @@ impl AppHandle for App {
         Ok(())
     }
 
-    fn update(&mut self, _control: &EventLoopWindowTarget<()>) {
+    fn update(&mut self, _control: &EventLoopWindowTarget<()>) -> Result<(), CalculationError> {
         self.threads.send_to(1, Message::Int(3)).unwrap();
 
         self.color.0 = if let Ok(Message::Float(color)) = self.threads.try_recv() {
@@ -54,6 +57,8 @@ impl AppHandle for App {
         } else {
             self.color.2
         };
+
+        Ok(())
     }
     fn on_resize(
         &mut self,
@@ -110,7 +115,9 @@ impl AppHandle for App {
         WindowBuilder::new().with_title("Windows")
     }
 
-    fn setup(&mut self, _renderer: &Renderer) {}
+    fn setup(&mut self, _renderer: &Renderer) -> Result<(), SetupError> {
+        Ok(())
+    }
 }
 
 fn main() {
