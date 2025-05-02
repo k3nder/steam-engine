@@ -182,7 +182,7 @@ fn main() {
         render_pipeline: None,
         vertex_buffer: None,
     };
-    pollster::block_on(exec!(app, RendererBuilder::new()));
+    pollster::block_on(exec!(app, RendererBuilder::new())).unwrap();
     random.join().unwrap();
 }
 

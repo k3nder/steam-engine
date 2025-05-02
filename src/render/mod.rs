@@ -1,6 +1,6 @@
 use bind_group::BindGroupEntryBuilder;
 use bytemuck::NoUninit;
-use errors::{RenderError, RendererSetupError};
+use errors::RendererSetupError;
 use texture::{Texture, TextureBuilder};
 use wgpu::{
     BackendOptions, Backends, BindGroupEntry, BindGroupLayoutDescriptor, BindGroupLayoutEntry,
@@ -10,13 +10,21 @@ use wgpu::{
 };
 use winit::dpi::PhysicalSize;
 
+/// This module is an utility to build bind groups
 pub mod bind_group;
+/// This module contrains the errors
 pub mod errors;
+/// This module contrains a macro to build a simple render pass
+#[macro_use]
 pub mod render_pass;
+/// This module contrains an utilies to create a render pipeline
 pub mod render_pipeline;
+/// This module contrains a utility to create textures
 pub mod texture;
+/// This module contrains an utilities to load vertex
 pub mod vertex;
 
+/// This the builder of the renderer, in this builder you can to set the parameters of the renderer Ex: performace mode
 pub struct RendererBuilder {
     backends: Backends,
     flags: InstanceFlags,
@@ -60,18 +68,22 @@ impl RendererBuilder {
             desired_maximum_frame_latency: 2,
         }
     }
+    /// Sets the backend of wgpu, example, Vulkan or OpenGL
     pub fn backends(mut self, backends: Backends) -> Self {
         self.backends = backends;
         self
     }
+    /// Sets the flags of the renderer
     pub fn flags(mut self, flags: InstanceFlags) -> Self {
         self.flags = flags;
         self
     }
+    /// Sets the options of the backend
     pub fn backend_options(mut self, backend_options: BackendOptions) -> Self {
         self.backend_options = backend_options;
         self
     }
+    /// Sets the performace mode
     pub fn power_preference(mut self, power_preference: wgpu::PowerPreference) -> Self {
         self.power_preference = power_preference;
         self
@@ -191,7 +203,7 @@ impl RendererBuilder {
         })
     }
 }
-
+/// this struct contrais all the components to render
 pub struct Renderer<'a> {
     pub surface: wgpu::Surface<'a>,
     pub device: wgpu::Device,
@@ -202,6 +214,7 @@ pub struct Renderer<'a> {
 }
 
 impl<'a> Renderer<'a> {
+    /// create a new render_pass encoder
     pub fn create_encoder(
         &self,
     ) -> Result<(CommandEncoder, TextureView, SurfaceTexture), wgpu::SurfaceError> {
@@ -219,21 +232,27 @@ impl<'a> Renderer<'a> {
             output,
         ))
     }
+    /// gets the surface
     pub fn surface(&self) -> &wgpu::Surface {
         &self.surface
     }
+    /// gets the device
     pub fn device(&self) -> &wgpu::Device {
         &self.device
     }
+    /// gets the queue
     pub fn queue(&self) -> &wgpu::Queue {
         &self.queue
     }
+    /// gets the config
     pub fn config(&self) -> &wgpu::SurfaceConfiguration {
         &self.config
     }
+    /// gets the size
     pub fn size(&self) -> PhysicalSize<u32> {
         self.size.clone()
     }
+    /// gets the window
     pub fn window(&self) -> &winit::window::Window {
         &self.window
     }
@@ -245,6 +264,7 @@ impl<'a> Renderer<'a> {
             self.surface.configure(&self.device, &self.config);
         }
     }
+    /// init a new buffer with a data
     pub fn init_buffer<A>(&self, label: &str, usage: BufferUsages, content: &[A]) -> Buffer
     where
         A: NoUninit,
@@ -255,6 +275,7 @@ impl<'a> Renderer<'a> {
             usage,
         })
     }
+    /// create a new bind group
     pub fn bind_group(
         &self,
         label: &str,
@@ -292,6 +313,7 @@ impl<'a> Renderer<'a> {
         });
         (bind_group, layout)
     }
+    /// init a new texture
     pub fn init_texture(
         &self,
         label: &'static str,

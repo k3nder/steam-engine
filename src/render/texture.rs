@@ -7,24 +7,27 @@ use wgpu::{
 
 use super::{Renderer, bind_group::BindGroupEntryBuilder};
 
+/// This structure contrains the dimensions of the texture
 pub enum TextureDimensions {
     D3(u32, u32, u32),
     D2(u32, u32),
     D1(u32),
 }
 impl TextureDimensions {
+    /// Create a new 3d texture dimension
     pub fn new_3d(width: u32, height: u32, depth: u32) -> Self {
         Self::D3(width, height, depth)
     }
-
+    /// Create a new 2d texture dimension
     pub fn new_2d(width: u32, height: u32) -> Self {
         Self::D2(width, height)
     }
-
+    /// Create a new 1d texture dimension
     pub fn new_1d(width: u32) -> Self {
         Self::D1(width)
     }
 
+    /// Convert the dimension to wgpu::TextureDimension
     pub fn wgpu_texture_dimension(&self) -> TextureDimension {
         match self {
             Self::D3(_, _, _) => TextureDimension::D3,
@@ -33,6 +36,7 @@ impl TextureDimensions {
         }
     }
 
+    /// Build the dimension to an Extent3d
     pub fn build(self) -> wgpu::Extent3d {
         match self {
             Self::D3(width, height, depth) => wgpu::Extent3d {
@@ -53,30 +57,44 @@ impl TextureDimensions {
         }
     }
 }
+/// This is the builder of the texture
 pub struct TextureBuilder {
     // Texture Size
+    /// this is the size of the texture
     dimension: Option<TextureDimensions>,
 
     // Texture Descriptior
+    /// default 1
     mip_level_count: Option<u32>,
+    /// default 1
     sample_count: Option<u32>,
+    /// default Bgra8UnormSrgb
     format: Option<TextureFormat>,
+    /// default TextureUsages::TEXTURE_BINDING | TextureUsages::COPY_DST
     usage: Option<TextureUsages>,
 
     // Texel info
+    /// default 0
     mip_level: Option<u32>,
+    /// default ZERO
     origin: Option<wgpu::Origin3d>,
+    /// default All
     aspect: Option<wgpu::TextureAspect>,
 
     // buffer info
+    /// default 0
     offset: Option<u64>,
+    /// default 4 * size.width
     bytes_per_row: Option<u32>,
+    /// default size.height
     rows_per_image: Option<u32>,
 
     // image data
+    /// this is the data of the texture
     data: Option<ImageBuffer<Rgba<u8>, Vec<u8>>>,
 }
 impl TextureBuilder {
+    /// create a new texture builder
     pub fn new() -> Self {
         Self {
             dimension: None,

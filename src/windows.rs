@@ -6,6 +6,7 @@ use winit::{
 
 use crate::render::Renderer;
 
+/// Errors module
 pub mod errors {
     use thiserror::Error;
     use wgpu::CreateSurfaceError;
@@ -51,19 +52,24 @@ pub mod errors {
 }
 
 pub trait AppHandle {
+    /// Setup and load all the items here
     fn setup(&mut self, renderer: &Renderer) -> Result<(), errors::SetupError>;
+    /// draw the window here
     fn redraw(
         &mut self,
         renderer: &Renderer,
         _control: &EventLoopWindowTarget<()>,
     ) -> Result<(), errors::RenderError>;
+    /// update the window here
     fn update(
         &mut self,
         _control: &EventLoopWindowTarget<()>,
     ) -> Result<(), errors::CalculationError>;
+    /// this method is called when the window is closing
     fn on_close(&mut self, _control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
+    /// this method is called when the window is resized
     fn on_resize(
         &mut self,
         _size: &winit::dpi::PhysicalSize<u32>,
@@ -72,6 +78,7 @@ pub trait AppHandle {
     ) -> bool {
         false
     }
+    /// this method is called when the mouse in moved
     fn on_mouse_move(&mut self, _x: i32, _y: i32, _control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
@@ -192,14 +199,27 @@ pub trait AppHandle {
     ) -> bool {
         false
     }
+    /// this method is called in all the events
     fn on(&mut self, _event: &WindowEvent, _control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
+    /// build the window here, with `winit::window::WindowBuilder`
+    /// ## Example
+    /// ```rust
+    /// WindowBuilder::new()
+    ///     .with_title("My window")
+    /// ```
+    ///
+    /// check the winit docs
     fn window(&self) -> winit::window::WindowBuilder {
         winit::window::WindowBuilder::new()
     }
 }
 /// This macro generates a event_loop with the application handle given
+/// ## Example with pollster (recomended)
+/// ```rust
+/// pollster::block_on(exec!(MyNewApp::new(), RendererBuilder::new()))
+/// ```
 #[macro_export]
 macro_rules! exec {
     ($app:expr, $renderer_config:expr) => {async {
