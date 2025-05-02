@@ -1,13 +1,19 @@
+use bind_group::BindGroupEntryBuilder;
 use bytemuck::NoUninit;
+use texture::{Texture, TextureBuilder};
 use wgpu::{
-    BackendOptions, Backends, Buffer, BufferUsages, CommandEncoder, InstanceFlags, PresentMode,
-    SurfaceTexture, TextureView, Trace,
+    BackendOptions, Backends, BindGroupEntry, BindGroupLayoutDescriptor, BindGroupLayoutEntry,
+    Buffer, BufferUsages, CommandEncoder, InstanceFlags, PresentMode, SurfaceTexture,
+    TextureFormat, TextureView, Trace,
     util::{BufferInitDescriptor, DeviceExt},
 };
 use winit::dpi::PhysicalSize;
 
+pub mod bind_group;
 pub mod render_pass;
 pub mod render_pipeline;
+pub mod texture;
+pub mod vertex;
 
 pub struct RendererBuilder {
     backends: Backends,
@@ -245,5 +251,50 @@ impl<'a> Renderer<'a> {
             contents: bytemuck::cast_slice(content),
             usage,
         })
+    }
+    pub fn bind_group(
+        &self,
+        label: &str,
+        entries: &[BindGroupEntryBuilder],
+    ) -> (wgpu::BindGroup, wgpu::BindGroupLayout) {
+        let layout_entries: Vec<wgpu::BindGroupLayoutEntry> = entries
+            .iter()
+            .map(|entry| BindGroupLayoutEntry {
+                binding: entry.binding,
+                visibility: entry.visibility,
+                ty: entry.ty,
+                count: entry.count,
+            })
+            .collect();
+        let layout = self
+            .device
+            .create_bind_group_layout(&BindGroupLayoutDescriptor {
+                label: Some(label),
+                entries: &layout_entries,
+            });
+        let entries: Vec<_> = entries
+            .iter()
+            .map(|entry| BindGroupEntry {
+                binding: entry.binding,
+                resource: entry
+                    .resource
+                    .clone()
+                    .expect("Resource binding in bind group not defined"),
+            })
+            .collect();
+        let bind_group = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some(label),
+            layout: &layout,
+            entries: &entries,
+        });
+        (bind_group, layout)
+    }
+    pub fn init_texture(
+        &self,
+        label: &'static str,
+        view_formats: Option<&'static [TextureFormat]>,
+        builder: TextureBuilder,
+    ) -> Texture {
+        builder.build(label, view_formats, self)
     }
 }
