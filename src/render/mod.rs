@@ -1,11 +1,14 @@
+use std::{fs::File, io::Read};
+
 use bind_group::BindGroupEntryBuilder;
 use bytemuck::NoUninit;
-use errors::RendererSetupError;
-use texture::{Texture, TextureBuilder};
+use errors::{RendererSetupError, TextureError};
+use texture::{Texture, TextureBuilder, TextureDimensions};
+use vertex::Vertex;
 use wgpu::{
     BackendOptions, Backends, BindGroupEntry, BindGroupLayoutDescriptor, BindGroupLayoutEntry,
     Buffer, BufferUsages, CommandEncoder, InstanceFlags, PresentMode, SurfaceTexture,
-    TextureFormat, TextureView, Trace,
+    TextureFormat, TextureView, TextureViewDescriptor, Trace,
     util::{BufferInitDescriptor, DeviceExt},
 };
 use winit::dpi::PhysicalSize;
@@ -321,5 +324,68 @@ impl<'a> Renderer<'a> {
         builder: TextureBuilder,
     ) -> Texture {
         builder.build(label, view_formats, self)
+    }
+    /// simple load a png texture from file
+    pub fn simple_png_texture_file(&self, file: &mut File) -> Result<Texture, TextureError> {
+        let mut buffer = Vec::new();
+        file.read_to_end(&mut buffer)?;
+        self.simple_png_texture_bytes(buffer.as_slice())
+    }
+    /// simple load a png texture from bytes
+    pub fn simple_png_texture_bytes(&self, bytes: &[u8]) -> Result<Texture, TextureError> {
+        let diffuse_image = image::load_from_memory(bytes)?;
+        let diffuse_rgba = diffuse_image.to_rgba8();
+        use image::GenericImageView;
+        let dimensions = diffuse_image.dimensions();
+
+        let mut texture = self.init_texture(
+            "texture",
+            None,
+            TextureBuilder::new()
+                .dimension(TextureDimensions::D2(dimensions.0, dimensions.1))
+                .data(diffuse_rgba),
+        );
+
+        texture.texture_view(TextureViewDescriptor::default());
+
+        texture.texture_sampler(
+            wgpu::SamplerDescriptor {
+                address_mode_u: wgpu::AddressMode::ClampToEdge,
+                address_mode_v: wgpu::AddressMode::ClampToEdge,
+                address_mode_w: wgpu::AddressMode::ClampToEdge,
+                mag_filter: wgpu::FilterMode::Linear,
+                min_filter: wgpu::FilterMode::Nearest,
+                mipmap_filter: wgpu::FilterMode::Nearest,
+                ..Default::default()
+            },
+            self,
+        );
+
+        texture.default_bind_group("texture bind group", self);
+        Ok(texture)
+    }
+    /// Load vertices to buffer
+    pub fn init_buffer_from_vertices<A: Vertex>(&self, label: &str, vertices: &[A]) -> Buffer {
+        self.init_buffer(label, BufferUsages::VERTEX, vertices)
+    }
+    /// Load indices to buffer
+    pub fn init_buffer_from_indices<A: NoUninit>(&self, label: &str, indices: &[A]) -> Buffer {
+        self.init_buffer(label, BufferUsages::INDEX, indices)
+    }
+    /// Load a index buffer and vertex buffer
+    /// Return: (vertex buffer, index buffer)
+    pub fn init_buffers_from_model<A: Vertex, B: NoUninit>(
+        &self,
+        label: &str,
+        vertices: &[A],
+        indices: &[B],
+    ) -> (Buffer, Buffer) {
+        let vertices_label = format!("{} - VERTICES", label);
+        let indices_label = format!("{} - INDICES", label);
+
+        let vertices_buffer = self.init_buffer_from_vertices(vertices_label.as_str(), vertices);
+        let indices_buffer = self.init_buffer_from_indices(indices_label.as_str(), indices);
+
+        (vertices_buffer, indices_buffer)
     }
 }
