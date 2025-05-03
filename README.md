@@ -32,7 +32,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-steamengine = { git = "https://github.com/k3nder/steamengine" }
+steamengine = { git = "https://github.com/k3nder/steam-engine" }
 ```
 
 ### Basic Usage
