@@ -1,21 +1,3 @@
-[package]
-name = "steamengine"
-version = "0.1.0"
-edition = "2024"
-license = "MIT"
-authors = ["K3nder <k3nde@outlook.es>"]
-description = "A lightweight graphic engine"
-
-[dependencies]
-bytemuck = "1.22.0"
-crossbeam-channel = "0.5.15"
-image = { version = "0.25.6", features = ["png", "jpeg"] }
-log = "0.4.27"
-thiserror = "2.0.12"
-wgpu = "25.0.0"
-winit = "0.29"
-
-[dev-dependencies]
-pollster = "0.4.0"
-env_logger = "0.11.8"
-rand = "0.8.5"
+[workspace]
+resolver = '2'
+members = ["steamengine-core", "examples/triangle-example"]

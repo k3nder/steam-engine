@@ -2,10 +2,10 @@ use wgpu::{RenderPassColorAttachment, RenderPassDepthStencilAttachment, TextureV
 #[macro_export]
 macro_rules! color_render_pass {
     ($r:expr, $g:expr, $b:expr, $a:expr, $view:expr) => {
-        wgpu::RenderPassDescriptor {
+        steamengine_core::wgpu::RenderPassDescriptor {
             label: None,
             color_attachments: &[Some(
-                steamengine::render::render_pass::RenderPassColorAttachmentBuilder::from_color(
+                steamengine_core::render::render_pass::RenderPassColorAttachmentBuilder::from_color(
                     $r, $g, $b, $a,
                 )
                 .build(&$view),
@@ -16,10 +16,10 @@ macro_rules! color_render_pass {
         }
     };
     ($r:expr, $g:expr, $b:expr, $view:expr) => {
-        wgpu::RenderPassDescriptor {
+        steamengine_core::wgpu::RenderPassDescriptor {
             label: None,
             color_attachments: &[Some(
-                steamengine::render::render_pass::RenderPassColorAttachmentBuilder::from_color(
+                steamengine_core::render::render_pass::RenderPassColorAttachmentBuilder::from_color(
                     $r, $g, $b, 1.0,
                 )
                 .build(&$view),
@@ -30,10 +30,10 @@ macro_rules! color_render_pass {
         }
     };
     ($color:expr, $view:expr) => {
-        wgpu::RenderPassDescriptor {
+        steamengine_core::wgpu::RenderPassDescriptor {
             label: None,
             color_attachments: &[Some(
-                steamengine::render::render_pass::RenderPassColorAttachmentBuilder::from_color(
+                steamengine_core::render::render_pass::RenderPassColorAttachmentBuilder::from_color(
                     $color, $color, $color, 1.0,
                 )
                 .build(&$view),
