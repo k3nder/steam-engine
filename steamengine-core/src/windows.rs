@@ -82,6 +82,7 @@ pub trait AppHandle {
         _renderer: &mut Renderer,
         _control: &EventLoopWindowTarget<()>,
     ) -> bool {
+        _renderer.resize(_size);
         false
     }
     /// this method is called when the mouse in moved
@@ -229,17 +230,18 @@ pub trait AppHandle {
 #[macro_export]
 macro_rules! exec {
     ($app:expr, $renderer_config:expr) => {async {
+        use steamengine_core::windows::AppHandle;
         let mut app = $app;
-        let event_loop = winit::event_loop::EventLoop::new()?;
+        let event_loop = steamengine_core::winit::event_loop::EventLoop::new()?;
         let window = app.window().build(&event_loop)?;
         let mut renderer = $renderer_config.build(&window).await?;
         app.setup(&renderer)?;
         let mut surface_configured = false;
-        let mut cursor_position = winit::dpi::PhysicalPosition::<f64>::new(0.0, 0.0);
+        let mut cursor_position = steamengine_core::winit::dpi::PhysicalPosition::<f64>::new(0.0, 0.0);
 
         event_loop
             .run(move |event, control_flow| match event {
-                winit::event::Event::WindowEvent {
+                steamengine_core::winit::event::Event::WindowEvent {
                     ref event,
                     window_id: _,
                 } => {
@@ -248,42 +250,34 @@ macro_rules! exec {
                     }
 
                     match event {
-                        winit::event::WindowEvent::CloseRequested => {
-                            if !app.on_close(control_flow) {
-                                return;
-                            }
+                        steamengine_core::winit::event::WindowEvent::CloseRequested => {
+                            app.on_close(control_flow);
                             control_flow.exit();
                         }
-                        winit::event::WindowEvent::Resized(size) => {
+                        steamengine_core::winit::event::WindowEvent::Resized(size) => {
                             surface_configured = true;
                             if app.on_resize(size, &mut renderer, control_flow) {
                                 return;
                             }
                         }
-                        winit::event::WindowEvent::RedrawRequested => {
+                        steamengine_core::winit::event::WindowEvent::RedrawRequested => {
                             renderer.window().request_redraw();
                             if !surface_configured {
                                 return;
                             }
-                            match app.update(control_flow) {
-                                Ok(()) => (),
-                                Err(err) => log::error!("Failed to update: {}", err),
-                            }
-                            match app.redraw(&renderer, control_flow) {
-                                Ok(()) => (),
-                                Err(err) => log::error!("Failed to redraw: {}", err),
-                            }
+                            app.update(control_flow).unwrap();
+                            app.redraw(&renderer, control_flow).unwrap();
                         }
-                        winit::event::WindowEvent::MouseInput { state, button, .. } => {
+                        steamengine_core::winit::event::WindowEvent::MouseInput { state, button, .. } => {
                             let x = cursor_position.x as i32;
                             let y = cursor_position.y as i32;
                             match state {
-                                winit::event::ElementState::Pressed => {
+                                steamengine_core::winit::event::ElementState::Pressed => {
                                     if app.on_mouse_down(*button, x, y, control_flow) {
                                         return;
                                     }
                                 },
-                                winit::event::ElementState::Released => {
+                                steamengine_core::winit::event::ElementState::Released => {
                                     if app.on_mouse_up(*button, x, y, control_flow) {
                                         return;
                                     }
@@ -300,7 +294,7 @@ macro_rules! exec {
                                 },
                             }
                         }
-                        winit::event::WindowEvent::CursorMoved { position, .. } => {
+                        steamengine_core::winit::event::WindowEvent::CursorMoved { position, .. } => {
                             cursor_position = *position;
                             let x = position.x as i32;
                             let y = position.y as i32;
@@ -308,24 +302,24 @@ macro_rules! exec {
                                 return;
                             }
                         }
-                        winit::event::WindowEvent::KeyboardInput { event, .. } => {
+                        steamengine_core::winit::event::WindowEvent::KeyboardInput { event, .. } => {
                             if app.on_keyboard(event.logical_key.clone(), control_flow) {
                                 return;
                             }
                             match event.state {
-                                winit::event::ElementState::Pressed => {
+                                steamengine_core::winit::event::ElementState::Pressed => {
                                     if app.on_key_pressed(event.logical_key.clone(), control_flow) {
                                         return;
                                     }
                                 },
-                                winit::event::ElementState::Released => {
+                                steamengine_core::winit::event::ElementState::Released => {
                                     if app.on_key_released(event.logical_key.clone(), control_flow) {
                                         return;
                                     }
                                 },
                             }
                         }
-                        winit::event::WindowEvent::Focused(focused) => {
+                        steamengine_core::winit::event::WindowEvent::Focused(focused) => {
                             if *focused {
                                 if app.on_focus_gained(control_flow) {
                                     return;
@@ -336,63 +330,63 @@ macro_rules! exec {
                                 }
                             }
                         }
-                        winit::event::WindowEvent::CursorEntered { .. } => {
+                        steamengine_core::winit::event::WindowEvent::CursorEntered { .. } => {
                             if app.on_mouse_enter(control_flow) {
                                 return;
                             }
                         }
-                        winit::event::WindowEvent::CursorLeft { .. } => {
+                        steamengine_core::winit::event::WindowEvent::CursorLeft { .. } => {
                             if app.on_mouse_leave(control_flow) {
                                 return;
                             }
                         }
-                        winit::event::WindowEvent::MouseWheel { delta, .. } => {
+                        steamengine_core::winit::event::WindowEvent::MouseWheel { delta, .. } => {
                             match delta {
-                                winit::event::MouseScrollDelta::LineDelta(_, y) => {
+                                steamengine_core::winit::event::MouseScrollDelta::LineDelta(_, y) => {
                                     if app.on_mouse_wheel(*y, control_flow) {
                                         return;
                                     }
                                 },
-                                winit::event::MouseScrollDelta::PixelDelta(delta) => {
+                                steamengine_core::winit::event::MouseScrollDelta::PixelDelta(delta) => {
                                     if app.on_mouse_wheel(delta.y as f32, control_flow) {
                                         return;
                                     }
                                 },
                             }
                         }
-                        winit::event::WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
+                        steamengine_core::winit::event::WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
                             if app.on_scale_factor_changed(*scale_factor, control_flow) {
                                 return;
                             }
                         }
-                        winit::event::WindowEvent::ThemeChanged(..) => {
+                        steamengine_core::winit::event::WindowEvent::ThemeChanged(..) => {
                             if app.on_theme_changed(control_flow) {
                                 return;
                             }
                         }
-                        winit::event::WindowEvent::DroppedFile(path) => {
+                        steamengine_core::winit::event::WindowEvent::DroppedFile(path) => {
                             if app.on_dropped_file(path.clone(), control_flow) {
                                 return;
                             }
                         }
-                        winit::event::WindowEvent::HoveredFile(path) => {
+                        steamengine_core::winit::event::WindowEvent::HoveredFile(path) => {
                             if app.on_hover_filed(path.clone(), control_flow) {
                                 return;
                             }
                         }
-                        winit::event::WindowEvent::HoveredFileCancelled => {
+                        steamengine_core::winit::event::WindowEvent::HoveredFileCancelled => {
                             if app.on_hover_canceled(control_flow) {
                                 return;
                             }
                         }
-                        winit::event::WindowEvent::Touch(touch) => {
+                        steamengine_core::winit::event::WindowEvent::Touch(touch) => {
                             let x = touch.location.x as i32;
                             let y = touch.location.y as i32;
                             if app.on_touch(touch.id, x, y, control_flow) {
                                 return;
                             }
                         }
-                        winit::event::WindowEvent::Ime(..) => {
+                        steamengine_core::winit::event::WindowEvent::Ime(..) => {
                             if app.on_ime(control_flow) {
                                 return;
                             }
@@ -404,12 +398,12 @@ macro_rules! exec {
                         }
                     }
                 }
-                winit::event::Event::AboutToWait => {
+                steamengine_core::winit::event::Event::AboutToWait => {
                     // This could be used for continuous rendering, if needed
                     renderer.window().request_redraw();
                 }
                 _ => (),
             })?;
-    Ok(()) as Result<(), steamengine::windows::errors::AppError>
+    Ok(()) as Result<(), steamengine_core::windows::errors::AppError>
     }};
 }

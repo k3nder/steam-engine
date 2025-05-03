@@ -5,4 +5,9 @@ pub mod threads;
 #[macro_use]
 pub mod windows;
 /// This module contrains an api to comunicate to WGPU
+#[macro_use]
 pub mod render;
+
+pub use bytemuck;
+pub use wgpu;
+pub use winit;
