@@ -11,7 +11,7 @@ pub mod errors {
     use thiserror::Error;
     use wgpu::CreateSurfaceError;
 
-    use crate::render::errors::RendererSetupError;
+    use crate::render::errors::{RendererSetupError, TextureError};
     #[derive(Error, Debug)]
     pub enum AppError {
         #[error("Unknown error")]
@@ -28,6 +28,8 @@ pub mod errors {
         WindowCreation(#[from] winit::error::OsError),
         #[error("Error setting up renderer")]
         RendererSetupError(#[from] RendererSetupError),
+        #[error("IOError")]
+        IO(#[from] std::io::Error),
     }
 
     #[derive(Error, Debug)]
@@ -36,6 +38,10 @@ pub mod errors {
         SurfaceCreation(#[from] wgpu::SurfaceError),
         #[error("Device creation error")]
         DeviceCreation(#[from] wgpu::Error),
+        #[error("IOError")]
+        IO(#[from] std::io::Error),
+        #[error("Texture setup error")]
+        Texture(#[from] TextureError),
     }
 
     #[derive(Error, Debug)]
@@ -243,7 +249,7 @@ macro_rules! exec {
 
                     match event {
                         winit::event::WindowEvent::CloseRequested => {
-                            if app.on_close(control_flow) {
+                            if !app.on_close(control_flow) {
                                 return;
                             }
                             control_flow.exit();

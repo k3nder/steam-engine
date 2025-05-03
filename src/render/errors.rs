@@ -3,12 +3,10 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum TextureError {
-    #[error("Error reading texture on '{path}' : {source}")]
-    Reading {
-        path: String,
-        #[source]
-        source: ImageError,
-    },
+    #[error("Error loading texture")]
+    Loading(#[from] ImageError),
+    #[error("Error reading texture")]
+    Reading(#[from] std::io::Error),
 }
 
 #[derive(Debug, Error)]
