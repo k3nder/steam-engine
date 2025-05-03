@@ -20,6 +20,7 @@ pub mod errors;
 /// This module contrains a macro to build a simple render pass
 #[macro_use]
 pub mod render_pass;
+pub mod instances;
 /// This module contrains an utilies to create a render pipeline
 pub mod render_pipeline;
 /// This module contrains a utility to create textures
