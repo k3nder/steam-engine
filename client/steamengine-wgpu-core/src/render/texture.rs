@@ -63,7 +63,7 @@ pub struct TextureBuilder {
     /// this is the size of the texture
     dimension: Option<TextureDimensions>,
 
-    // Texture Descriptior
+    // Texture Descriptor
     /// default 1
     mip_level_count: Option<u32>,
     /// default 1
@@ -179,13 +179,13 @@ impl TextureBuilder {
         renderer: &Renderer,
     ) -> Texture {
         let dimensions = self.dimension.expect(
-            "Unable to find texture dimmensions on {}, please use funcion 'dimension' to set-it",
+            "Unable to find texture dimensions on {}, please use function 'dimension' to set-it",
         );
         let dimension = dimensions.wgpu_texture_dimension();
         let size = dimensions.build();
         let mip_level_count = self.mip_level_count.unwrap_or(1);
         let sample_count = self.sample_count.unwrap_or(1);
-        let format = self.format.unwrap_or(TextureFormat::Bgra8UnormSrgb);
+        let format = self.format.unwrap_or(TextureFormat::Rgba8UnormSrgb);
         let usage = self
             .usage
             .unwrap_or(TextureUsages::TEXTURE_BINDING | TextureUsages::COPY_DST);

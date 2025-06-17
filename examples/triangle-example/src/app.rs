@@ -45,7 +45,7 @@ impl AppHandle for TriangleApp {
             let pipeline = self
                 .pipeline
                 .as_ref()
-                .expect("Render pipeline not initalized");
+                .expect("Render pipeline not initialized");
             let (vertices, indices) = self.model.as_ref().expect("Model not initialized");
 
             render_pass.set_pipeline(pipeline);

@@ -1,5 +1,5 @@
 use winit::{
-    event::{MouseButton, WindowEvent},
+    event::{ElementState, KeyEvent, MouseButton, WindowEvent},
     event_loop::EventLoopWindowTarget,
     keyboard::Key,
 };
@@ -9,7 +9,6 @@ use crate::render::Renderer;
 /// Errors module
 pub mod errors {
     use thiserror::Error;
-    use wgpu::CreateSurfaceError;
 
     use crate::render::errors::{RendererSetupError, TextureError};
     #[derive(Error, Debug)]
@@ -70,6 +69,7 @@ pub trait AppHandle {
     fn update(
         &mut self,
         _control: &EventLoopWindowTarget<()>,
+        renderer: &Renderer,
     ) -> Result<(), errors::CalculationError>;
     /// this method is called when the window is closing
     fn on_close(&mut self, _control: &EventLoopWindowTarget<()>) -> bool {
@@ -140,7 +140,13 @@ pub trait AppHandle {
     fn on_exit_fullscreen(&mut self, _control: &EventLoopWindowTarget<()>) -> bool {
         false
     }
-    fn on_keyboard(&mut self, _key: Key, _control: &EventLoopWindowTarget<()>) -> bool {
+    fn on_keyboard(
+        &mut self,
+        _key: Key,
+        _state: ElementState,
+        _event: &KeyEvent,
+        _control: &EventLoopWindowTarget<()>,
+    ) -> bool {
         false
     }
     fn on_key_pressed(&mut self, _key: Key, _control: &EventLoopWindowTarget<()>) -> bool {
@@ -223,7 +229,7 @@ pub trait AppHandle {
     }
 }
 /// This macro generates a event_loop with the application handle given
-/// ## Example with pollster (recomended)
+/// ## Example with pollster (recommended)
 /// ```rust
 /// pollster::block_on(exec!(MyNewApp::new(), RendererBuilder::new()))
 /// ```
@@ -265,7 +271,7 @@ macro_rules! exec {
                             if !surface_configured {
                                 return;
                             }
-                            app.update(control_flow).unwrap();
+                            app.update(control_flow, &renderer).unwrap();
                             app.redraw(&renderer, control_flow).unwrap();
                         }
                         steamengine_core::winit::event::WindowEvent::MouseInput { state, button, .. } => {
@@ -303,7 +309,7 @@ macro_rules! exec {
                             }
                         }
                         steamengine_core::winit::event::WindowEvent::KeyboardInput { event, .. } => {
-                            if app.on_keyboard(event.logical_key.clone(), control_flow) {
+                            if app.on_keyboard(event.logical_key.clone(), event.state, event, control_flow) {
                                 return;
                             }
                             match event.state {

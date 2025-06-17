@@ -21,14 +21,14 @@ pub mod errors;
 #[macro_use]
 pub mod render_pass;
 pub mod instances;
-/// This module contrains an utilies to create a render pipeline
+/// This module contrains an utilities to create a render pipeline
 pub mod render_pipeline;
 /// This module contrains a utility to create textures
 pub mod texture;
 /// This module contrains an utilities to load vertex
 pub mod vertex;
 
-/// This the builder of the renderer, in this builder you can to set the parameters of the renderer Ex: performace mode
+/// This the builder of the renderer, in this builder you can to set the parameters of the renderer Ex: performance mode
 pub struct RendererBuilder {
     backends: Backends,
     flags: InstanceFlags,
@@ -87,7 +87,7 @@ impl RendererBuilder {
         self.backend_options = backend_options;
         self
     }
-    /// Sets the performace mode
+    /// Sets the performance mode
     pub fn power_preference(mut self, power_preference: wgpu::PowerPreference) -> Self {
         self.power_preference = power_preference;
         self
@@ -183,7 +183,7 @@ impl RendererBuilder {
 
         let surface_caps = surface.get_capabilities(&adapter);
         // Shader code in this tutorial assumes an Srgb surface texture. Using a different
-        // one will result all the colors comming out darker. If you want to support non
+        // one will result all the colors coming out darker. If you want to support non
         // Srgb surfaces, you'll need to account for that when drawing to the frame.
         let surface_format = (self.surface_format)(&surface_caps);
         let config = wgpu::SurfaceConfiguration {
@@ -388,5 +388,9 @@ impl<'a> Renderer<'a> {
         let indices_buffer = self.init_buffer_from_indices(indices_label.as_str(), indices);
 
         (vertices_buffer, indices_buffer)
+    }
+    pub fn update_buffer<A: NoUninit>(&self, buffer: &Buffer, data: &[A]) {
+        self.queue()
+            .write_buffer(buffer, 0, bytemuck::cast_slice(data));
     }
 }

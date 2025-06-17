@@ -1,4 +1,4 @@
-use wgpu::{BufferAddress, VertexBufferLayout, VertexStepMode};
+use wgpu::VertexBufferLayout;
 /// This trait is the layout of one vertex
 /// ## Example
 /// ```rust

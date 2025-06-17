@@ -1,7 +1,9 @@
 [workspace]
 resolver = '2'
 members = [
-    "steamengine-core",
-    "examples/triangle-example",
-    "examples/instance-test",
+    "client/steamengine-wgpu-core",
+    "client/steamengine",
+    "backend/steamengine-communication",
+    "backend/steamengine-persistent",
+    "backend/steamengine-server"
 ]
