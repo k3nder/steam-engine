@@ -1,0 +1,19 @@
+[package]
+name = "stm-client-example"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.98"
+bytemuck = "1.23.1"
+cgmath = "0.18.0"
+hashbrown = { version = "0.15.4", features = ["rayon"] }
+pollster = "0.4.0"
+rayon = "1.10.0"
+steamengine-renderer-util = { version = "0.1.0", path = "../../steamengine-renderer-util", features = ["resource-manager", "camera", "prespective-camera", "simple-buffers", "texture-resource-manager", "model-resource-manager", "png", "jpeg", "webp", "simple-bindings", "depth-textures"] }
+steamengine-communication = { version = "1.0.0", path = "../../../backend/steamengine-communication", features = ["tcp"] }
+tracing = "0.1.41"
+tracing-subscriber = "0.3.19"
+wgpu = "25.0.2"
+winit = "0.30"
+steamengine-renderer = { version = "0.2.0", path = "../../steamengine-renderer" }
+

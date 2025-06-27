@@ -2,22 +2,15 @@ use std::collections::HashMap;
 
 use rkyv::{
     Archive, Deserialize, Serialize,
-    api::{
-        access_pos_unchecked,
-        high::{HighSerializer, HighValidator},
-        root_position,
-    },
+    api::high::{HighSerializer, HighValidator},
     bytecheck::CheckBytes,
     de::Pool,
     rancor::{Source, Strategy},
     ser::allocator::ArenaHandle,
     util::AlignedVec,
 };
-pub mod asyncron;
-#[cfg(feature = "redis-impl")]
-pub mod redis;
 
-pub trait Persistent {
+pub trait AsyncPersistent {
     type Error: std::error::Error;
     /// function to obtain an index that grows for each call.
     /// ## Example
@@ -27,13 +20,16 @@ pub trait Persistent {
     /// let index = vks.index("counter")?;
     /// assert_eq!(index, 2);
     /// ```
-    fn index(&mut self, key: &str) -> Result<isize, Self::Error>;
+    fn index(&mut self, key: &str) -> impl Future<Output = Result<isize, Self::Error>>;
     /// function that generates a new entity with the provided components, returns the id of the entity
     /// ## Example
     /// ```rust
     /// let entity = vks.create_entity(&["render:13", "clock:45"])?;
     /// ```
-    fn create_entity(&mut self, components: &[&str]) -> Result<isize, Self::Error>;
+    fn create_entity(
+        &mut self,
+        components: &[&str],
+    ) -> impl Future<Output = Result<isize, Self::Error>>;
     /// uploads a new component to the database, converting the component to binary with rkyv, returns the component id
     /// ## Example
     /// ```rust
@@ -54,25 +50,28 @@ pub trait Persistent {
         typ: &str,
         component: impl for<'b> Serialize<HighSerializer<AlignedVec, ArenaHandle<'b>, E>> + Send,
         arena: ArenaHandle<'a>,
-    ) -> Result<String, Self::Error>;
+    ) -> impl Future<Output = Result<String, Self::Error>>;
     /// obtains all the components of a specific type
     /// ## Example
     /// ```rust
     /// let clocks = vks.components_of_type("clock")?;
     /// ```
-    fn components_of_type(&mut self, typ: &str) -> Result<HashMap<String, Vec<u8>>, Self::Error>;
+    fn components_of_type(
+        &mut self,
+        typ: &str,
+    ) -> impl Future<Output = Result<HashMap<String, Vec<u8>>, Self::Error>>;
     /// gets the components of an entity with its id
     /// ## Example
     /// ```rust
     /// let components = vks.get_entity("entities:1")?;
     /// ```
-    fn get_entity(&mut self, id: isize) -> Result<Vec<String>, Self::Error>;
+    fn get_entity(&mut self, id: isize) -> impl Future<Output = Result<Vec<String>, Self::Error>>;
     /// Gets the data of a specific component with its id
     /// ## Example
     /// ```rust
     /// let component = vks.get_component("clock:13");
     /// ```
-    fn get_component<T, E>(&mut self, id: &str) -> Result<T, Self::Error>
+    fn get_component<T, E>(&mut self, id: &str) -> impl Future<Output = Result<T, Self::Error>>
     where
         T: Archive,
         T::Archived: for<'a> CheckBytes<HighValidator<'a, E>> + Deserialize<T, Strategy<Pool, E>>,
@@ -91,7 +90,7 @@ pub trait Persistent {
         id: &str,
         component: C,
         arena: ArenaHandle<'a>,
-    ) -> Result<(), Self::Error>
+    ) -> impl Future<Output = Result<(), Self::Error>>
     where
         E: Source,
         C: for<'b> Serialize<HighSerializer<AlignedVec, ArenaHandle<'b>, E>> + Send;
@@ -100,20 +99,13 @@ pub trait Persistent {
     /// ```rust
     /// vks.set_entity(2, &["clock:55"])
     /// ```
-    fn set_entity(&mut self, id: isize, components: &[&str]) -> Result<(), Self::Error>;
+    fn set_entity(
+        &mut self,
+        id: isize,
+        components: &[&str],
+    ) -> impl Future<Output = Result<(), Self::Error>>;
     /// Sets a value to the persistent DB
-    fn set(&mut self, id: &str, value: Vec<u8>) -> Result<(), Self::Error>;
+    fn set(&mut self, id: &str, value: Vec<u8>) -> impl Future<Output = Result<(), Self::Error>>;
     /// Gets a value from the persistent DB
-    fn get(&mut self, id: &str) -> Result<Vec<u8>, Self::Error>;
-}
-
-pub fn deserialize<'a, T, E>(data: &'a Vec<u8>) -> &'a T::Archived
-where
-    T: Archive + Send,
-    T::Archived: for<'b> CheckBytes<HighValidator<'b, E>> + Deserialize<T, Strategy<Pool, E>>,
-    E: Source,
-{
-    let pos = root_position::<T::Archived>(data.len());
-    let archived = unsafe { access_pos_unchecked(data.as_slice(), pos) };
-    archived
+    fn get(&mut self, id: &str) -> impl Future<Output = Result<Vec<u8>, Self::Error>>;
 }

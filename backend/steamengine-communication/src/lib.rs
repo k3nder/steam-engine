@@ -1,13 +1,15 @@
-use std::io::{Read, Write};
+use std::io::{BufReader, Read, Write};
 #[cfg(feature = "tcp")]
 use std::net::TcpStream;
 
 use rkyv::{
-    access, api::{
-        high::HighValidator,
-        low::access_pos,
-        root_position,
-    }, bytecheck::CheckBytes, de::Pool, rancor::{Failure, Panic, Source, Strategy}, to_bytes, with::Skip, Archive, Deserialize, Serialize
+    Archive, Deserialize, Serialize, access,
+    api::{high::HighValidator, low::access_pos, root_position},
+    bytecheck::CheckBytes,
+    de::Pool,
+    rancor::{Failure, Panic, Source, Strategy},
+    to_bytes,
+    with::Skip,
 };
 
 use crate::errors::PCSError;
@@ -22,13 +24,12 @@ macro_rules! define_get {
     };
 }
 
-
+/// Module with errors
+pub mod errors;
 #[cfg(feature = "tokio-comp")]
 /// Module with implementations for tokio
 /// Enable it with feature `tokio-comp`
 pub mod tokio;
-/// Module with errors
-pub mod errors;
 
 /// this trait is for packet data, all packets to be sent have to implement this trait, it contains a function to convert the object to an instance of Package.
 pub trait ToPackage: Send {
@@ -91,7 +92,9 @@ impl<'a> Package {
         let start = self.index;
         let end = self.index + N;
         let value = &self.value[start..end];
-        let value: [u8; N] = value.try_into().expect("Fail to convert a slice to a vector");
+        let value: [u8; N] = value
+            .try_into()
+            .expect("Fail to convert a slice to a vector");
         self.index = end;
         value
     }
@@ -102,27 +105,48 @@ impl<'a> Package {
         Self {
             name: name.to_owned(),
             value,
-            index: 0
+            index: 0,
         }
     }
 }
 /// reads a package to everything you implement read
 pub fn read(reader: &mut impl Read) -> Result<Package, PCSError> {
-    let mut buf = Vec::new();
-    reader.read_to_end(&mut buf)?;
-    let pos = root_position::<ArchivedPackage>(buf.len());
-    let message_wrapper: &ArchivedPackage = access_pos::<_, Panic>(&buf, pos).expect("Error deserializing the package, package corrupt or incomplete");
-    let mut name = String::new();
-    message_wrapper.name.clone_into(&mut name);
-    let mut value = Vec::new();
-    message_wrapper.value.clone_into(&mut value);
-    Ok(Package { name, value, index: 0 })
+    const USIZE_LEN: usize = std::mem::size_of::<usize>();
+    let mut key_len: [u8; USIZE_LEN] = [0u8; USIZE_LEN];
+    reader.read_exact(&mut key_len)?;
+    let key_len = usize::from_be_bytes(key_len);
+    let mut value_len: [u8; USIZE_LEN] = [0u8; USIZE_LEN];
+    reader.read_exact(&mut value_len)?;
+    let value_len = usize::from_be_bytes(value_len);
+    let total_len = key_len + value_len;
+
+    let mut buf = vec![0u8; total_len];
+    reader.read_exact(&mut buf)?;
+
+    let key = buf[..key_len].to_vec();
+    let value = buf[key_len..].to_vec();
+
+    let key = String::from_utf8(key).unwrap();
+    println!("KEY : {}", key);
+
+    Ok(Package::new(key.as_str(), value))
 }
 
 /// to everything that implements write
 pub fn write(writer: &mut impl Write, package: Package) -> Result<(), PCSError> {
-    let bytes = to_bytes::<Failure>(&package).expect("Error serilizing a package");
-    writer.write_all(&bytes)?;
+    let mut key_len = package.name.bytes().len().to_be_bytes().to_vec();
+    let mut value_len = package.value.len().to_be_bytes().to_vec();
+    let mut key = package.name.as_bytes().to_vec();
+    let mut value = package.value;
+
+    let mut bytes = Vec::new();
+    bytes.append(&mut key_len);
+    bytes.append(&mut value_len);
+    bytes.append(&mut key);
+    bytes.append(&mut value);
+
+    writer.write_all(&bytes).unwrap();
+
     Ok(())
 }
 
@@ -144,11 +168,11 @@ impl ReadPackageImpl for TcpStream {
 }
 #[cfg(feature = "tcp")]
 impl WritePackageImpl for TcpStream {
-    fn write_package<T: ToPackage>(&mut self, arena: &mut Arena, package: T) -> Result<(), PCSError> {
-        let package = package.to_package(arena.acquire());
-        write(self, arena, package)
+    fn write_package<T: ToPackage>(&mut self, package: T) -> Result<(), PCSError> {
+        let package = package.to_package();
+        write(self, package)
     }
-    fn write_raw_package(&mut self, arena: &mut Arena, package: Package) -> Result<(), PCSError> {
-        write(self, arena, package)
+    fn write_raw_package(&mut self, package: Package) -> Result<(), PCSError> {
+        write(self, package)
     }
 }

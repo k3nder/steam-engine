@@ -1,0 +1,16 @@
+[package]
+name = "steamengine-renderer"
+version = "0.2.0"
+edition = "2024"
+license = "MIT"
+authors = ["K3nder <k3nde@outlook.es>"]
+description = "A lightweight graphic engine core"
+
+[dependencies]
+bytemuck = "1.22.0"
+image = { version = "0.25.6", features = ["png", "jpeg"] }
+thiserror = "2.0.12"
+tracing = "0.1.41"
+wgpu = "25.0.0"
+winit = "0.30.11"
+
