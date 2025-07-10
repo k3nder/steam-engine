@@ -51,8 +51,6 @@ webp = ["texture-resource-manager", "image/webp"]
 [dev-dependencies]
 anyhow = "1.0.98"
 pollster = "0.4.0"
-steamengine-communication = { path = "../../backend/steamengine-communication", features = ["tcp"] }
-steamengine-persistent = { path = "../../backend/steamengine-persistent", features = ["redis-impl"] }
 tracing-log = "0.2.0"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 winit = "0.30.11"
