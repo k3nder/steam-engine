@@ -46,7 +46,7 @@ pub struct State<'a> {
     instances: Option<Arc<InstanceBuffer<'a>>>,
     bg_color: Arc<RwLock<Color>>,
     commands: Option<Arc<DrawQueueBuffer<'a>>>,
-    camera_buffer: Option<CameraBuffer<'a>>,
+    camera_buffer: Option<CameraBuffer<'a, PrespectiveCamera>>,
     camera: PrespectiveCamera,
     camera_bindings: Option<Bindings>,
     camera_controler: CameraController,
@@ -134,11 +134,13 @@ impl ApplicationHandler<()> for State<'static> {
         //    }
         //});
         //
-        let camera_buffer = CameraBuffer::new(renderer.clone(), 1);
+        let camera_buffer = CameraBuffer::<'_, PrespectiveCamera>::new(renderer.clone(), 1);
         let camera_bindings = steamengine_renderer_util::camera::create_bindings(
             renderer.clone(),
             camera_buffer.as_entrie(),
         );
+
+        camera_buffer.set(0, &self.camera);
         /*
         let view = self.camera.view();
         renderer
@@ -209,7 +211,6 @@ impl ApplicationHandler<()> for State<'static> {
             .unwrap()
             .clone();
 
-        camera_buffer.set(0, self.camera.matrix());
         model.instance_count = 2;
         model.first_instance = 0;
         commands.set(0, model);
@@ -278,10 +279,7 @@ impl<'a> State<'a> {
         let depth_texture = self.depth_texture.as_ref().unwrap();
 
         self.camera_controler.update_camera(&mut self.camera);
-        self.camera_buffer
-            .as_ref()
-            .unwrap()
-            .set(0, self.camera.matrix());
+        self.camera_buffer.as_ref().unwrap().set(0, &self.camera);
 
         let (mut encoder, view, output) = renderer.create_encoder().unwrap();
         //println!("encored");

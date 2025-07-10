@@ -79,7 +79,7 @@ pub struct InstanceBuffer<'a> {
     renderer: Arc<Renderer<'a>>,
     limit: u64,
 }
-impl<'a> SimpleBuffer<'a, Instance> for InstanceBuffer<'a> {
+impl<'a> SimpleBuffer<'a, RawInstance> for InstanceBuffer<'a> {
     fn new(renderer: Arc<Renderer<'a>>, limit: u64) -> Self {
         let lock = renderer.clone();
         let buffer = lock.create_buffer(
@@ -93,32 +93,16 @@ impl<'a> SimpleBuffer<'a, Instance> for InstanceBuffer<'a> {
             limit,
         }
     }
-    fn set(&self, index: u64, data: Instance) {
-        if index > self.limit {
-            error!(
-                "attempt to nest an entity outside the limits of the buffer, SimpleBuffer Overflow"
-            );
-            return;
-        }
-        self.renderer
-            .update_buffer_entry(&self.buffer, index, data.to_raw());
-    }
-    fn set_all(&self, data: &[Instance]) {
-        self.renderer.update_buffer(
-            &self.buffer,
-            data.iter()
-                .map(|f| {
-                    let f = f.clone();
-                    f.to_raw()
-                })
-                .collect::<Vec<RawInstance>>()
-                .as_slice(),
-        );
-    }
     fn as_entrie(&self) -> wgpu::BindingResource {
         self.buffer.as_entire_binding()
     }
     fn buffer(&self) -> &wgpu::Buffer {
         &self.buffer
+    }
+    fn renderer(&self) -> Arc<Renderer<'a>> {
+        self.renderer.clone()
+    }
+    fn limit(&self) -> u64 {
+        self.limit
     }
 }

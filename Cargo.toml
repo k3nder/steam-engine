@@ -3,6 +3,7 @@ resolver = '2'
 members = [
     "client/steamengine-renderer",
     "client/steamengine-renderer-util",
+    "client/steamengine-ui",
     "backend/steamengine-communication",
     "backend/steamengine-persistent",
     "backend/steamengine-backend-defaults",

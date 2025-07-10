@@ -2675,7 +2675,7 @@ dependencies = [
 
 [[package]]
 name = "steamengine-renderer-util"
-version = "0.1.0"
+version = "0.1.2"
 dependencies = [
  "anyhow",
  "bytemuck",
@@ -2695,6 +2695,20 @@ dependencies = [
  "tracing-subscriber",
  "wgpu",
  "winit",
+]
+
+[[package]]
+name = "steamengine-ui"
+version = "0.0.0"
+dependencies = [
+ "bytemuck",
+ "cgmath",
+ "hashbrown",
+ "rayon",
+ "steamengine-renderer",
+ "steamengine-renderer-util",
+ "tracing",
+ "wgpu",
 ]
 
 [[package]]

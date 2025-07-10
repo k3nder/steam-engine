@@ -7,17 +7,21 @@ use steamengine_renderer::texture::TextureDimensions;
 use tracing::*;
 use wgpu::TextureFormat;
 use wgpu::TextureUsages;
+
+/// Bound of a texture inside the atlas
 #[derive(Copy, Clone)]
 pub struct TextureBounds {
     pub uv_offset: [f32; 2],
     pub uv_scale: [f32; 2],
 }
 
+/// Implementation of Resource loader for textures
 pub struct TextureResourceLoader;
 impl TextureResourceLoader {
     pub fn new() -> Self {
         Self
     }
+    /// load all the textures inside a atlas and gets the bounds
     pub fn load_to_atlas(
         &self,
         root: &str,

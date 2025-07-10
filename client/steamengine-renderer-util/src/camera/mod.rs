@@ -51,7 +51,7 @@ pub struct CameraBuffer<'a> {
     limit: u64,
 }
 #[cfg(feature = "simple-buffers")]
-impl<'a, T: Camera> crate::simple_buffer::SimpleBuffer<'a, T> for CameraBuffer<'a> {
+impl<'a> crate::simple_buffer::SimpleBuffer<'a, [[f32; 4]; 4]> for CameraBuffer<'a> {
     fn new(renderer: std::sync::Arc<steamengine_renderer::Renderer<'a>>, limit: u64) -> Self {
         let lock = renderer.clone();
         let buffer = lock.create_buffer(
@@ -65,23 +65,25 @@ impl<'a, T: Camera> crate::simple_buffer::SimpleBuffer<'a, T> for CameraBuffer<'
             limit,
         }
     }
-    fn set(&self, index: u64, data: T) {
-        if index > self.limit {
-            tracing::error!(
-                "attempt to nest an entity outside the limits of the buffer, SimpleBuffer Overflow"
-            );
-            return;
-        }
-        let matrix: [[f32; 4]; 4] = data.matrix().into();
-        self.renderer
-            .update_buffer_entry(&self.buffer, index, matrix);
-    }
-    fn set_all(&self, _: &[T]) {}
     fn as_entrie(&self) -> wgpu::BindingResource {
         self.buffer.as_entire_binding()
     }
     fn buffer(&self) -> &wgpu::Buffer {
         &self.buffer
+    }
+    fn limit(&self) -> u64 {
+        self.limit
+    }
+    fn renderer(&self) -> std::sync::Arc<steamengine_renderer::Renderer<'a>> {
+        self.renderer.clone()
+    }
+}
+#[cfg(feature = "simple-buffers")]
+impl CameraBuffer<'_> {
+    pub fn set_camera<T: Camera>(&self, camera: T) {
+        use crate::simple_buffer::SimpleBuffer;
+        let matrix: [[f32; 4]; 4] = camera.matrix().into();
+        self.set(0, matrix);
     }
 }
 

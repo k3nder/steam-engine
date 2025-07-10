@@ -75,10 +75,10 @@ pub trait DepthTexture {
     }
     /// Create a new depth texture
     fn create(renderer: &Renderer) -> Self;
-    ///
+    /// Return the render pass config
     fn stencil_attachment(&self) -> wgpu::RenderPassDepthStencilAttachment;
 }
-
+/// Function to create a new depth_texture from a renderer
 pub trait RenderPassCreateDepthTexture {
     fn create_depth_texture<T: DepthTexture>(&self) -> T;
 }
@@ -88,6 +88,7 @@ impl RenderPassCreateDepthTexture for steamengine_renderer::Renderer<'_> {
     }
 }
 
+/// Default implementation
 pub struct DefaultDepthTexture {
     texture: Texture,
 }

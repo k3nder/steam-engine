@@ -5,6 +5,27 @@ use cgmath::Point3;
 use cgmath::Vector3;
 use cgmath::perspective;
 
+/// Implementation of camera for Prespective Camera
+/// ## Example
+/// ```rust
+/// use cgmath::point3;
+/// use steamengine_renderer_util::camera::create_bindings;
+/// use steamengine_renderer_util::camera::CameraBuffer;
+///
+/// let camera = PrespectiveCamera::default();
+/// // set the aspect ratio with window properties
+/// *camera.aspect_ratio() = width / height;
+/// // sets the camera location
+/// *camera.eye() = point3(0.0, 0.0, -2.0);
+///
+/// // upload the camera to the shader
+/// let buffer = CameraBuffer::new(&renderer, 1);
+/// let binding = create_bindings(&renderer, buffer.as_entrie());
+///
+/// buffer.set(0, camera);
+///
+/// ```
+
 #[derive(Clone, Debug)]
 pub struct PrespectiveCamera {
     // view matrix

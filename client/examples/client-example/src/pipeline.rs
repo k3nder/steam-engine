@@ -37,6 +37,6 @@ impl<'a> RenderPipeline for AppRenderPipeline<'a> {
         }
     }
     fn depth_stencil(&self) -> Option<wgpu::DepthStencilState> {
-        Some(DefaultDepthTexture::render_pass_stencil())
+        Some(DefaultDepthTexture::pipeline_stencil())
     }
 }

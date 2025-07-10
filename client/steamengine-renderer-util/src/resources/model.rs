@@ -10,6 +10,7 @@ use steamengine_renderer::Renderer;
 use wgpu::BufferUsages;
 use wgpu::util::DrawIndexedIndirectArgs;
 
+/// Vertex of a model
 #[repr(C)]
 #[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct Vertex {
@@ -44,15 +45,18 @@ impl steamengine_renderer::vertex::Vertex for Vertex {
     }
 }
 
+/// Vertices and indices of a model
 pub struct RawModel {
     vertices: Vec<Vertex>,
     indices: Vec<u32>,
 }
+/// All the models inside of this buffer
 pub struct Models {
     pub vertices: wgpu::Buffer,
     pub indices: wgpu::Buffer,
 }
 pub trait RenderPassAttachModels {
+    /// Sets the models buffer
     fn set_models(&mut self, models: &Models);
 }
 impl RenderPassAttachModels for wgpu::RenderPass<'_> {
@@ -62,12 +66,14 @@ impl RenderPassAttachModels for wgpu::RenderPass<'_> {
     }
 }
 
+/// Implementation of resource loader for model
 pub struct ModelResourceLoader;
 
 impl ModelResourceLoader {
     pub fn new() -> Self {
         Self
     }
+    /// Loads all the models into a models buffer and gets the models
     pub fn load_to_buffers(
         &self,
         root: &str,
