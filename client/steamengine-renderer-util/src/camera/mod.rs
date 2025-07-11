@@ -1,6 +1,4 @@
-use cgmath::Matrix4;
-use cgmath::Point3;
-use cgmath::Vector3;
+use glam::*;
 
 /// Use and create cameras easily
 
@@ -16,17 +14,17 @@ pub mod prespective;
 /// Abstraction of a camera
 pub trait Camera: Send + Sync + Clone {
     /// Create a view matrix for the camera
-    fn view(&self) -> Matrix4<f32>;
+    fn view(&self) -> Mat4;
     /// Create a projection matrix
-    fn projection(&self) -> Matrix4<f32>;
+    fn projection(&self) -> Mat4;
     /// Poistion of the camera
-    fn eye(&mut self) -> &mut Point3<f32>;
+    fn eye(&mut self) -> &mut Vec3;
     /// Direction of the camera
-    fn target(&mut self) -> &mut Point3<f32>;
+    fn target(&mut self) -> &mut Vec3;
     /// Up vector
-    fn up(&mut self) -> &mut Vector3<f32>;
+    fn up(&mut self) -> &mut Vec3;
     /// Calculated and converted to WGPU matrix of the camera
-    fn matrix(&self) -> Matrix4<f32> {
+    fn matrix(&self) -> Mat4 {
         let projection = self.projection();
         let view = self.view();
         let matrix = OPENGL_TO_WGPU_MATRIX * projection * view;
@@ -36,11 +34,11 @@ pub trait Camera: Send + Sync + Clone {
 
 /// Constant for conversion of opengl camera to wgpu camera
 #[rustfmt::skip]
-pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::from_cols(
-    cgmath::Vector4::new(1.0, 0.0, 0.0, 0.0),
-    cgmath::Vector4::new(0.0, 1.0, 0.0, 0.0),
-    cgmath::Vector4::new(0.0, 0.0, 0.5, 0.0),
-    cgmath::Vector4::new(0.0, 0.0, 0.5, 1.0),
+pub const OPENGL_TO_WGPU_MATRIX: Mat4 = Mat4::from_cols(
+    vec4(1.0, 0.0, 0.0, 0.0),
+    vec4(0.0, 1.0, 0.0, 0.0),
+    vec4(0.0, 0.0, 0.5, 0.0),
+    vec4(0.0, 0.0, 0.5, 1.0),
 );
 
 /// Simple buffer Implementation for camera matrix
@@ -82,7 +80,7 @@ impl<'a> crate::simple_buffer::SimpleBuffer<'a, [[f32; 4]; 4]> for CameraBuffer<
 impl CameraBuffer<'_> {
     pub fn set_camera<T: Camera>(&self, camera: T) {
         use crate::simple_buffer::SimpleBuffer;
-        let matrix: [[f32; 4]; 4] = camera.matrix().into();
+        let matrix: [[f32; 4]; 4] = camera.matrix().to_cols_array_2d();
         self.set(0, matrix);
     }
 }

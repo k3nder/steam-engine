@@ -1,9 +1,5 @@
 use super::Camera;
-use cgmath::Deg;
-use cgmath::Matrix4;
-use cgmath::Point3;
-use cgmath::Vector3;
-use cgmath::perspective;
+use glam::*;
 
 /// Implementation of camera for Prespective Camera
 /// ## Example
@@ -29,9 +25,9 @@ use cgmath::perspective;
 #[derive(Clone, Debug)]
 pub struct PrespectiveCamera {
     // view matrix
-    eye: Point3<f32>,
-    target: Point3<f32>,
-    up: Vector3<f32>,
+    eye: Vec3,
+    target: Vec3,
+    up: Vec3,
 
     // projection
     fov: f32,
@@ -55,9 +51,9 @@ impl PrespectiveCamera {
 }
 impl Default for PrespectiveCamera {
     fn default() -> Self {
-        let eye = Point3::new(0.0, 1.0, 2.0);
-        let target = Point3::new(0.0, 0.0, 0.0);
-        let up = Vector3::unit_y();
+        let eye = vec3(0.0, 1.0, 2.0);
+        let target = vec3(0.0, 0.0, 0.0);
+        let up = vec3(0.0, 1.0, 0.0);
 
         let fov = 45.0;
         let aspect_ratio = 16.0 / 9.0;
@@ -77,19 +73,19 @@ impl Default for PrespectiveCamera {
 }
 
 impl Camera for PrespectiveCamera {
-    fn up(&mut self) -> &mut Vector3<f32> {
+    fn up(&mut self) -> &mut Vec3 {
         &mut self.up
     }
-    fn eye(&mut self) -> &mut Point3<f32> {
+    fn eye(&mut self) -> &mut Vec3 {
         &mut self.eye
     }
-    fn target(&mut self) -> &mut Point3<f32> {
+    fn target(&mut self) -> &mut Vec3 {
         &mut self.target
     }
-    fn view(&self) -> Matrix4<f32> {
-        Matrix4::look_at_rh(self.eye, self.target, self.up)
+    fn view(&self) -> Mat4 {
+        Mat4::look_at_rh(self.eye, self.target, self.up)
     }
-    fn projection(&self) -> Matrix4<f32> {
-        perspective(Deg(self.fov), self.aspect_ratio, self.near, self.far)
+    fn projection(&self) -> Mat4 {
+        Mat4::perspective_lh(self.fov, self.aspect_ratio, self.near, self.far)
     }
 }

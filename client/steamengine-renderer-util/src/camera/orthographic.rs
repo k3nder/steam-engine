@@ -1,8 +1,5 @@
 use super::Camera;
-use cgmath::Matrix4;
-use cgmath::Point3;
-use cgmath::Vector3;
-use cgmath::ortho;
+use glam::*;
 
 /// Implementation of camera for Orthographic Camera
 /// ## Example
@@ -28,9 +25,9 @@ use cgmath::ortho;
 #[derive(Clone, Debug)]
 pub struct OrthographicCamera {
     // view matrix
-    eye: Point3<f32>,
-    target: Point3<f32>,
-    up: Vector3<f32>,
+    eye: Vec3,
+    target: Vec3,
+    up: Vec3,
 
     left: f32,
     right: f32,
@@ -41,9 +38,9 @@ pub struct OrthographicCamera {
 }
 impl OrthographicCamera {
     pub fn default() -> Self {
-        let eye = Point3::new(0.0, 0.0, 5.0);
-        let target = Point3::new(0.0, 0.0, 0.0);
-        let up = Vector3::new(0.0, 1.0, 0.0);
+        let eye = vec3(0.0, 0.0, 5.0);
+        let target = vec3(0.0, 0.0, 0.0);
+        let up = vec3(0.0, 1.0, 0.0);
 
         let left = -10.0;
         let right = 10.0;
@@ -65,20 +62,20 @@ impl OrthographicCamera {
     }
 }
 impl Camera for OrthographicCamera {
-    fn up(&mut self) -> &mut Vector3<f32> {
+    fn up(&mut self) -> &mut Vec3 {
         &mut self.up
     }
-    fn eye(&mut self) -> &mut Point3<f32> {
+    fn eye(&mut self) -> &mut Vec3 {
         &mut self.eye
     }
-    fn target(&mut self) -> &mut Point3<f32> {
+    fn target(&mut self) -> &mut Vec3 {
         &mut self.target
     }
-    fn view(&self) -> Matrix4<f32> {
-        Matrix4::look_at_rh(self.eye, self.target, self.up)
+    fn view(&self) -> Mat4 {
+        Mat4::look_at_rh(self.eye, self.target, self.up)
     }
-    fn projection(&self) -> Matrix4<f32> {
-        ortho(
+    fn projection(&self) -> Mat4 {
+        Mat4::orthographic_rh(
             self.left,
             self.right,
             self.bottom,
