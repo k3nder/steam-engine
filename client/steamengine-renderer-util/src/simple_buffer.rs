@@ -31,6 +31,25 @@ pub trait SimpleBuffer<'a, T: bytemuck::NoUninit> {
         }
         self.renderer().update_buffer(self.buffer(), data);
     }
+    /// Fill a entry with zeros
+    fn free_entry(&self, index: u64) {
+        if index > self.limit() {
+            error!(
+                "attempt to nest an entity outside the limits of the buffer, SimpleBuffer Overflow"
+            );
+            return;
+        }
+        let size = std::mem::size_of::<T>() as u64;
+        let offset = size * index;
+        let zeros = vec![0u8; size as usize];
+        self.renderer().queue().write_buffer(self.buffer(), offset, &zeros);
+    }
+    /// Fill all the buffer with zeros
+    fn free(&self) {
+        let size = std::mem::size_of::<T>();
+        let zeros = vec![0u8; size * self.limit() as usize];
+        self.renderer().queue().write_buffer(self.buffer(), 0, &zeros);
+    } 
     /// Converts the buffert to a binding resource
     fn as_entrie(&self) -> wgpu::BindingResource {
         self.buffer().as_entire_binding()

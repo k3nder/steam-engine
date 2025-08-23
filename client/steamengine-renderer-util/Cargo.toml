@@ -1,6 +1,6 @@
 [package]
 name = "steamengine-renderer-util"
-version = "0.1.3"
+version = "0.1.4"
 edition = "2024"
 license = "MIT"
 authors = ["K3nder <k3nde@outlook.es>"]
